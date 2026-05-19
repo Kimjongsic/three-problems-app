@@ -26,9 +26,11 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 
-  const YEAR = 2026;
-  const MONTH = 5;
+  // ★ 월별 조회를 위한 동적 상태 관리 (기본값: 현재 연도 및 월)
+  const [currentYear, setCurrentYear] = useState(2026);
+  const [currentMonth, setCurrentMonth] = useState(5);
 
+  // 오늘 날짜 구하기 (한국 시간 기준)
   const getTodayStr = () => {
     const now = new Date();
     const krOffset = 9 * 60 * 60 * 1000; 
@@ -37,6 +39,7 @@ export default function App() {
   };
   const todayStr = getTodayStr();
 
+  // 선택된 연도/월의 평일(월~금) 리스트 구하기
   const getWeekdaysOfMonth = (year: number, month: number): string[] => {
     const weekdays: string[] = [];
     const date = new Date(year, month - 1, 1);
@@ -50,17 +53,23 @@ export default function App() {
     return weekdays;
   };
 
-  const weekdays = getWeekdaysOfMonth(YEAR, MONTH);
+  const weekdays = getWeekdaysOfMonth(currentYear, currentMonth);
 
-  // 최초 1회 또는 강제 동기화 시에만 사용하는 전체 로딩 함수
+  // ★ 선택된 월에 맞춰 데이터를 동적으로 가져오도록 수정
   const fetchData = async (showGlobalLoading = false) => {
     if (showGlobalLoading) setLoading(true);
     
     const { data: studentData } = await supabase.from('students').select('*').order('id', { ascending: true });
     
-    const startDate = `${YEAR}-${String(MONTH).padStart(2, '0')}-01`;
-    const endDate = `${YEAR}-${String(MONTH).padStart(2, '0')}-31`;
-    const { data: logData } = await supabase.from('challenge_logs').select('student_id, log_date, solved_count').gte('log_date', startDate).lte('log_date', endDate);
+    // 해당 월의 시작일과 종료일 계산
+    const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+    const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`;
+    
+    const { data: logData } = await supabase
+      .from('challenge_logs')
+      .select('student_id, log_date, solved_count')
+      .gte('log_date', startDate)
+      .lte('log_date', endDate);
 
     if (studentData) setStudents(studentData);
     if (logData) setLogs(logData);
@@ -68,11 +77,35 @@ export default function App() {
     setLoading(false);
   };
 
+  // ★ 연도나 월이 바뀔 때마다 데이터를 새로 불러옵니다.
   useEffect(() => {
-    fetchData(true); // 앱 첫 접속 시에만 전체 로딩창을 띄웁니다.
+    fetchData(true);
+  }, [currentYear, currentMonth]);
+
+  useEffect(() => {
     const savedUser = localStorage.getItem('routine_user');
     if (savedUser) setCurrentStudent(JSON.parse(savedUser));
   }, []);
+
+  // 이전 달로 이동 버튼 함수
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear(prev => prev - 1);
+    } else {
+      setCurrentMonth(prev => prev - 1);
+    }
+  };
+
+  // 다음 달로 이동 버튼 함수
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonth(prev => prev + 1);
+    }
+  };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +160,6 @@ export default function App() {
     }
   };
 
-  // ✨ 수정된 핵심 기능: 깜빡임 없는 실시간 체크 토글
   const handleSquareClick = async (dateStr: string) => {
     if (!currentStudent) return;
 
@@ -139,7 +171,6 @@ export default function App() {
     const currentCount = getSolvedCount(currentStudent.id, dateStr);
     const nextCount = currentCount >= 3 ? 0 : 3;
 
-    // 1. 화면에 먼저 반영하기 (Optimistic UI 기법: 사용자가 답답하지 않게 브라우저에 선반영)
     const updatedLogs = [...logs];
     const logIndex = updatedLogs.findIndex(l => l.student_id === currentStudent.id && l.log_date === dateStr);
     
@@ -148,9 +179,8 @@ export default function App() {
     } else {
       updatedLogs.push({ student_id: currentStudent.id, log_date: dateStr, solved_count: nextCount });
     }
-    setLogs(updatedLogs); // 이 순간 즉시 불이 켜지거나 꺼집니다!
+    setLogs(updatedLogs);
 
-    // 2. 백그라운드(뒤쪽)에서 Supabase에 조용히 저장하기
     const { error } = await supabase
       .from('challenge_logs')
       .upsert({
@@ -161,7 +191,7 @@ export default function App() {
 
     if (error) {
       alert('저장에 실패했습니다. 다시 시도해 주세요.');
-      fetchData(false); // 실패했을 때만 원래 상태로 복구하기 위해 가져옴
+      fetchData(false);
     }
   };
 
@@ -183,6 +213,7 @@ export default function App() {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif', color: '#ffb3c6', fontSize: '1.2rem', fontWeight: 'bold' }}>💖 소중한 루틴 찾아오는 중...</div>;
   }
 
+  // [1] 로그인 / 회원가입 화면
   if (!currentStudent) {
     return (
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '40px 24px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fff5f5', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -250,17 +281,29 @@ export default function App() {
     );
   }
 
+  // [2] 로그인 후 메인 대시보드 화면
   return (
     <div style={{ maxWidth: '420px', margin: '0 auto', padding: '32px 20px 60px 20px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fffdfd', minHeight: '100vh', boxSizing: 'border-box' }}>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', paddingBottom: '20px', borderBottom: '2px dashed #ffe3e8' }}>
-        <div>
+      {/* 상단 헤더 및 ★ 월 선택 네비게이터 바 추가 */}
+      <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '2px dashed #ffe3e8' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#ff7aa2' }}>🍰 {currentStudent.name}</h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#ff94b4', fontWeight: '600' }}>이번 달 달성률 ✨ <span style={{ color: '#ff4d7d', fontSize: '1rem' }}>{getSuccessDaysCount(currentStudent.id)}개</span></p>
+          <button onClick={handleLogout} style={{ padding: '8px 14px', backgroundColor: '#fff0f3', color: '#ff7aa2', border: '1px solid #ffe3e8', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: '700' }}>로그아웃</button>
         </div>
-        <button onClick={handleLogout} style={{ padding: '8px 14px', backgroundColor: '#fff0f3', color: '#ff7aa2', border: '1px solid #ffe3e8', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: '700' }}>로그아웃</button>
+
+        {/* 감성적인 디자인의 월 선택 기능 바 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff5f7', padding: '12px 16px', borderRadius: '16px', border: '1px dashed #ffd0da' }}>
+          <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', fontSize: '1.1rem', color: '#ff7aa2', cursor: 'pointer', fontWeight: 'bold' }}>◀</button>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ff7aa2' }}>{currentYear}년 {currentMonth}월</span>
+            <span style={{ fontSize: '0.8rem', color: '#ff94b4', display: 'block', fontWeight: '600', marginTop: '2px' }}>달성 횟수 ✨ <span style={{ color: '#ff4d7d' }}>{getSuccessDaysCount(currentStudent.id)}회</span></span>
+          </div>
+          <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', fontSize: '1.1rem', color: '#ff7aa2', cursor: 'pointer', fontWeight: 'bold' }}>▶</button>
+        </div>
       </div>
 
+      {/* 탭 버튼 */}
       <div style={{ display: 'flex', backgroundColor: '#fff0f3', padding: '5px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #ffe3e8' }}>
         <button onClick={() => setActiveTab('my')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'my' ? '#ff7aa2' : 'transparent', color: activeTab === 'my' ? 'white' : '#ff94b4', boxShadow: activeTab === 'my' ? '0 4px 12px rgba(255,122,162,0.2)' : 'none' }}>
           내 캘린더
@@ -270,6 +313,7 @@ export default function App() {
         </button>
       </div>
 
+      {/* 탭 1: 내 보드 */}
       {activeTab === 'my' && (
         <div style={{ padding: '4px' }}>
           <p style={{ fontSize: '0.85rem', color: '#ff94b4', textAlign: 'center', marginBottom: '20px', fontWeight: '600' }}>🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
@@ -306,6 +350,7 @@ export default function App() {
         </div>
       )}
 
+      {/* 탭 2: 전체 보기 */}
       {activeTab === 'all' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {students.map(s => {
