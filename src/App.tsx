@@ -26,14 +26,12 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 
-  // 연도와 월 설정 (2026년 5월 기준)
   const YEAR = 2026;
   const MONTH = 5;
 
-  // 오늘 날짜 구하기 (한국 시간 기준 포맷: YYYY-MM-DD)
   const getTodayStr = () => {
     const now = new Date();
-    const krOffset = 9 * 60 * 60 * 1000; // 한국 표준시 대입
+    const krOffset = 9 * 60 * 60 * 1000; 
     const krDate = new Date(now.getTime() + krOffset);
     return krDate.toISOString().split('T')[0];
   };
@@ -54,8 +52,10 @@ export default function App() {
 
   const weekdays = getWeekdaysOfMonth(YEAR, MONTH);
 
-  const fetchData = async () => {
-    setLoading(true);
+  // 최초 1회 또는 강제 동기화 시에만 사용하는 전체 로딩 함수
+  const fetchData = async (showGlobalLoading = false) => {
+    if (showGlobalLoading) setLoading(true);
+    
     const { data: studentData } = await supabase.from('students').select('*').order('id', { ascending: true });
     
     const startDate = `${YEAR}-${String(MONTH).padStart(2, '0')}-01`;
@@ -64,11 +64,12 @@ export default function App() {
 
     if (studentData) setStudents(studentData);
     if (logData) setLogs(logData);
+    
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(true); // 앱 첫 접속 시에만 전체 로딩창을 띄웁니다.
     const savedUser = localStorage.getItem('routine_user');
     if (savedUser) setCurrentStudent(JSON.parse(savedUser));
   }, []);
@@ -120,26 +121,36 @@ export default function App() {
       setRegisterName('');
       setRegisterPin('');
       setIsRegisterMode(false);
-      fetchData();
+      fetchData(false);
     } else {
       alert('회원가입 중 오류가 발생했어요.');
     }
   };
 
-  // ★ 2. 루틴 완료 토글 (클릭 시 완료/취소) 기능 함수
+  // ✨ 수정된 핵심 기능: 깜빡임 없는 실시간 체크 토글
   const handleSquareClick = async (dateStr: string) => {
     if (!currentStudent) return;
 
-    // 오늘 날짜 외에 다른 과거/미래 날짜는 터치 불가 안전장치
     if (dateStr !== todayStr) {
       alert('오늘 날짜의 루틴만 체크할 수 있어요! 🗓️');
       return;
     }
 
     const currentCount = getSolvedCount(currentStudent.id, dateStr);
-    // 현재 완료 상태(3)면 미완료(0)로, 미완료면 완료(3)로 토글
     const nextCount = currentCount >= 3 ? 0 : 3;
 
+    // 1. 화면에 먼저 반영하기 (Optimistic UI 기법: 사용자가 답답하지 않게 브라우저에 선반영)
+    const updatedLogs = [...logs];
+    const logIndex = updatedLogs.findIndex(l => l.student_id === currentStudent.id && l.log_date === dateStr);
+    
+    if (logIndex > -1) {
+      updatedLogs[logIndex].solved_count = nextCount;
+    } else {
+      updatedLogs.push({ student_id: currentStudent.id, log_date: dateStr, solved_count: nextCount });
+    }
+    setLogs(updatedLogs); // 이 순간 즉시 불이 켜지거나 꺼집니다!
+
+    // 2. 백그라운드(뒤쪽)에서 Supabase에 조용히 저장하기
     const { error } = await supabase
       .from('challenge_logs')
       .upsert({
@@ -148,10 +159,9 @@ export default function App() {
         solved_count: nextCount
       }, { onConflict: 'student_id, log_date' });
 
-    if (!error) {
-      fetchData(); // 화면 잔디 실시간 갱신
-    } else {
-      alert('로그 저장에 실패했습니다. 다시 시도해 주세요.');
+    if (error) {
+      alert('저장에 실패했습니다. 다시 시도해 주세요.');
+      fetchData(false); // 실패했을 때만 원래 상태로 복구하기 위해 가져옴
     }
   };
 
@@ -173,7 +183,6 @@ export default function App() {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif', color: '#ffb3c6', fontSize: '1.2rem', fontWeight: 'bold' }}>💖 소중한 루틴 찾아오는 중...</div>;
   }
 
-  // [1] 로그인 / 회원가입 화면
   if (!currentStudent) {
     return (
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '40px 24px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fff5f5', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -241,11 +250,9 @@ export default function App() {
     );
   }
 
-  // [2] 로그인 후: 메인 대시보드 화면
   return (
     <div style={{ maxWidth: '420px', margin: '0 auto', padding: '32px 20px 60px 20px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fffdfd', minHeight: '100vh', boxSizing: 'border-box' }}>
       
-      {/* 상단 헤더 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', paddingBottom: '20px', borderBottom: '2px dashed #ffe3e8' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#ff7aa2' }}>🍰 {currentStudent.name}</h2>
@@ -254,7 +261,6 @@ export default function App() {
         <button onClick={handleLogout} style={{ padding: '8px 14px', backgroundColor: '#fff0f3', color: '#ff7aa2', border: '1px solid #ffe3e8', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: '700' }}>로그아웃</button>
       </div>
 
-      {/* 탭 버튼 */}
       <div style={{ display: 'flex', backgroundColor: '#fff0f3', padding: '5px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #ffe3e8' }}>
         <button onClick={() => setActiveTab('my')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'my' ? '#ff7aa2' : 'transparent', color: activeTab === 'my' ? 'white' : '#ff94b4', boxShadow: activeTab === 'my' ? '0 4px 12px rgba(255,122,162,0.2)' : 'none' }}>
           내 캘린더
@@ -264,7 +270,6 @@ export default function App() {
         </button>
       </div>
 
-      {/* 탭 1: 내 보드 */}
       {activeTab === 'my' && (
         <div style={{ padding: '4px' }}>
           <p style={{ fontSize: '0.85rem', color: '#ff94b4', textAlign: 'center', marginBottom: '20px', fontWeight: '600' }}>🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
@@ -272,19 +277,18 @@ export default function App() {
             {weekdays.map(d => {
               const count = getSolvedCount(currentStudent.id, d);
               const isDone = count >= 3;
-              const isToday = d === todayStr; // 오늘 날짜 여부 확인
+              const isToday = d === todayStr;
 
               return (
                 <div 
                   key={d} 
                   title={isToday ? "오늘 날짜 🎯" : d}
-                  onClick={() => handleSquareClick(d)} // ★ 클릭 시 루틴 완료/취소 함수 작동
+                  onClick={() => handleSquareClick(d)} 
                   style={{ 
                     width: '58px', 
                     height: '58px', 
                     borderRadius: '18px', 
                     backgroundColor: isDone ? '#ff7aa2' : '#fdf3f5', 
-                    // ★ 1. 오늘 날짜에 포인트 테두리 스타일 적용 (중요!)
                     border: isToday 
                       ? '3px solid #ff4d7d' 
                       : (isDone ? 'none' : '2px dashed #ffd0da'),
@@ -302,7 +306,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 탭 2: 전체 보기 */}
       {activeTab === 'all' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {students.map(s => {
@@ -330,7 +333,6 @@ export default function App() {
                           height: '26px', 
                           borderRadius: '8px', 
                           backgroundColor: isDone ? '#ff94b4' : '#fff8f9',
-                          // 전체 보기 창에서도 오늘 날짜는 진한 핑크색 선으로 은은하게 구별
                           border: isToday 
                             ? '2px solid #ff4d7d' 
                             : (isDone ? 'none' : '1px solid #ffe3e8'),
