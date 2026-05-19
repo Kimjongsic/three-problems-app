@@ -81,7 +81,7 @@ export default function App() {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif', color: '#ffb3c6', fontSize: '1.2rem', fontWeight: 'bold' }}>💖 소중한 루틴 찾아오는 중...</div>;
   }
 
-  // [1] 로그인 전: 파스텔 감성 로그인 화면
+  // [1] 로그인 전 화면
   if (!currentStudent) {
     return (
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '40px 24px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fff5f5', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -95,7 +95,7 @@ export default function App() {
           <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '0.95rem', fontWeight: '700', textAlign: 'center' }}>✨ 누구로 체크인할까요? ✨</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {students.map(s => (
-              <button key={s.id} onClick={() => handleLogin(s)} style={{ padding: '16px', backgroundColor: '#fff0f3', border: '1px solid #ffe3e8', borderRadius: '16px', fontSize: '1.05rem', fontWeight: '700', color: '#ff7aa2', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(255,182,198,0.05)' }}>
+              <button key={s.id} onClick={() => handleLogin(s)} style={{ padding: '16px', backgroundColor: '#fff0f3', border: '1px solid #ffe3e8', borderRadius: '16px', fontSize: '1.05rem', fontWeight: '700', color: '#ff7aa2', textAlign: 'center', cursor: 'pointer' }}>
                 {s.name}
               </button>
             ))}
@@ -105,11 +105,11 @@ export default function App() {
     );
   }
 
-  // [2] 로그인 후: 메인 대시보드
+  // [2] 로그인 후 화면
   return (
     <div style={{ maxWidth: '420px', margin: '0 auto', padding: '32px 20px 60px 20px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fffdfd', minHeight: '100vh', boxSizing: 'border-box' }}>
       
-      {/* 아기자기한 상단 헤더 */}
+      {/* 헤더 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', paddingBottom: '20px', borderBottom: '2px dashed #ffe3e8' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#ff7aa2' }}>🍰 {currentStudent.name}</h2>
@@ -118,17 +118,17 @@ export default function App() {
         <button onClick={handleLogout} style={{ padding: '8px 14px', backgroundColor: '#fff0f3', color: '#ff7aa2', border: '1px solid #ffe3e8', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: '700' }}>로그아웃</button>
       </div>
 
-      {/* 동글동글 탭 버튼 */}
-      <div style={{ display: 'flex', backgroundColor: '#fff0f3', padding: '5px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #ffe3e8' }}>
-        <button onClick={() => setActiveTab('my')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'my' ? '#ff7aa2' : 'transparent', color: activeTab === 'my' ? 'white' : '#ff94b4', boxShadow: activeTab === 'my' ? '0 4px 12px rgba(255,122,162,0.2)' : 'none', transition: 'all 0.2s' }}>
+      {/* 탭 내비게이션 바 (에러 완벽 원천 차단) */}
+      <div style={{ display: 'flex', padding: '5px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #ffe3e8', backgroundColor: '#fff0f3' }}>
+        <button onClick={() => setActiveTab('my')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'my' ? '#ff7aa2' : 'transparent', color: activeTab === 'my' ? 'white' : '#ff94b4' }}>
           내 캘린더
         </button>
-        <button onClick={() => setActiveTab('all')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'all' ? '#ff7aa2' : 'transparent', color: activeTab === 'all' ? '#ff94b4', boxShadow: activeTab === 'all' ? '0 4px 12px rgba(255,122,162,0.2)' : 'none', transition: 'all 0.2s' }}>
+        <button onClick={() => setActiveTab('all')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'all' ? '#ff7aa2' : 'transparent', color: activeTab === 'all' ? '#ff94b4' : 'transparent' && '#ff94b4' }}>
           우리반 다이어리 👥
         </button>
       </div>
 
-      {/* 탭 1: 내 보드 (사랑스러운 마카롱 스타일 사각형) */}
+      {/* 탭 1: 내 보드 */}
       {activeTab === 'my' && (
         <div style={{ padding: '4px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', justifyItems: 'center' }}>
@@ -145,8 +145,6 @@ export default function App() {
                     borderRadius: '18px', 
                     backgroundColor: isDone ? '#ff7aa2' : '#fdf3f5', 
                     border: isDone ? 'none' : '2px dashed #ffd0da',
-                    boxShadow: isDone ? '0 6px 14px rgba(255,122,162,0.3)' : 'none',
-                    transition: 'all 0.3s ease',
                     cursor: 'pointer'
                   }} 
                 />
@@ -156,13 +154,13 @@ export default function App() {
         </div>
       )}
 
-      {/* 탭 2: 전체 보기 (우리반 리스트) */}
+      {/* 탭 2: 전체 보기 */}
       {activeTab === 'all' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {students.map(s => {
             const isMe = s.id === currentStudent.id;
             return (
-              <div key={s.id} style={{ backgroundColor: isMe ? '#fff9fa' : 'white', border: isMe ? '2px solid #ffb3c6' : '1px solid #f9ebed', borderRadius: '20px', padding: '16px', boxShadow: '0 4px 12px rgba(255,182,198,0.05)' }}>
+              <div key={s.id} style={{ backgroundColor: isMe ? '#fff9fa' : 'white', border: isMe ? '2px solid #ffb3c6' : '1px solid #f9ebed', borderRadius: '20px', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
                   <span style={{ fontWeight: '800', color: isMe ? '#ff4d7d' : '#555', fontSize: '0.95rem' }}>
                     🎀 {s.name} {isMe && <span style={{ fontSize: '0.75rem', color: 'white', backgroundColor: '#ff7aa2', padding: '2px 8px', borderRadius: '20px', marginLeft: '4px' }}>나</span>}
@@ -170,7 +168,6 @@ export default function App() {
                   <span style={{ fontSize: '0.8rem', color: '#ff7aa2', fontWeight: '700', backgroundColor: '#fff0f3', padding: '4px 10px', borderRadius: '12px' }}>✨ {getSuccessDaysCount(s.id)}회</span>
                 </div>
                 
-                {/* 친구들 보드 */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                   {weekdays.map(d => {
                     const count = getSolvedCount(s.id, d);
@@ -183,8 +180,7 @@ export default function App() {
                           height: '26px', 
                           borderRadius: '8px', 
                           backgroundColor: isDone ? '#ff94b4' : '#fff8f9',
-                          border: isDone ? 'none' : '1px solid #ffe3e8',
-                          boxShadow: isDone ? '0 2px 6px rgba(255,148,180,0.2)' : 'none'
+                          border: isDone ? 'none' : '1px solid #ffe3e8'
                         }} 
                       />
                     );
