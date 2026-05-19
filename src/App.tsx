@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 interface Student {
   id: number;
   name: string;
+  password_pin: string; // 비밀번호 필드 추가
 }
 
 interface ChallengeLog {
@@ -20,8 +21,9 @@ export default function App() {
   // 로그인 및 회원가입 관련 상태
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
   const [isRegisterMode, setIsRegisterMode] = useState(false); 
-  const [loginName, setLoginName] = useState('');
+  const [loginPin, setLoginPin] = useState(''); // 로그인 시 비밀번호만 입력
   const [registerName, setRegisterName] = useState('');
+  const [registerPin, setRegisterPin] = useState(''); // 회원가입 시 4자리 비밀번호
   
   // 탭 상태
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
@@ -63,46 +65,63 @@ export default function App() {
     if (savedUser) setCurrentStudent(JSON.parse(savedUser));
   }, []);
 
-  // 로그인 처리
+  // 로그인 처리 (비밀번호 4자리 매칭)
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginName.trim()) return;
+    if (!loginPin.trim()) return;
 
-    const student = students.find(s => s.name === loginName.trim());
+    // 입력한 비밀번호(PIN)와 일치하는 학생 찾기
+    const student = students.find(s => s.password_pin === loginPin.trim());
     
     if (student) {
       setCurrentStudent(student);
       setActiveTab('my');
-      setLoginName('');
+      setLoginPin('');
       localStorage.setItem('routine_user', JSON.stringify(student));
     } else {
-      alert('등록되지 않은 이름이에요. 회원가입을 먼저 해주세요! 🎀');
+      alert('비밀번호가 일치하는 학생이 없어요. 다시 확인해 주세요! 🎀');
     }
   };
 
-  // 회원가입 처리
+  // 회원가입 처리 (이름 + 비밀번호 4자리)
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registerName.trim()) return;
+    if (!registerName.trim() || !registerPin.trim()) return;
 
-    const isExist = students.some(s => s.name === registerName.trim());
-    if (isExist) {
+    // 비밀번호 자릿수 체크 안전장치
+    if (registerPin.trim().length !== 4 || isNaN(Number(registerPin))) {
+      alert('비밀번호는 숫자 4자리로 설정해 주세요! 🧁');
+      return;
+    }
+
+    // 이름 중복 검사
+    const isNameExist = students.some(s => s.name === registerName.trim());
+    if (isNameExist) {
       alert('이미 등록된 이름이에요! 다른 이름을 사용해 주세요. 🍰');
       return;
     }
 
+    // 비밀번호 중복 검사 (비밀번호로만 로그인하므로 중복 방지)
+    const isPinExist = students.some(s => s.password_pin === registerPin.trim());
+    if (isPinExist) {
+      alert('이미 다른 친구가 사용 중인 비밀번호예요! 나만의 비밀번호 4자리를 정해주세요. ⭐');
+      return;
+    }
+
+    // Supabase 데이터베이스에 새 학생 등록 (이름과 비밀번호 함께 저장)
     const { data, error } = await supabase
       .from('students')
-      .insert([{ name: registerName.trim() }])
+      .insert([{ name: registerName.trim(), password_pin: registerPin.trim() }])
       .select();
 
     if (!error && data && data.length > 0) {
-      alert('회원가입이 완료되었어요! 로그인을 진행해 주세요. 💕');
+      alert('가입이 완료되었어요! 방금 정한 비밀번호로 로그인해 주세요. 💕');
       setRegisterName('');
-      setIsRegisterMode(false);
-      fetchData();
+      setRegisterPin('');
+      setIsRegisterMode(false); // 로그인 화면으로 이동
+      fetchData(); // 데이터 새로고침
     } else {
-      alert('회원가입 중 오류가 발생했어요.');
+      alert('회원가입 중 오류가 발생했어요. 다시 시도해 주세요.');
     }
   };
 
@@ -124,6 +143,7 @@ export default function App() {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif', color: '#ffb3c6', fontSize: '1.2rem', fontWeight: 'bold' }}>💖 소중한 루틴 찾아오는 중...</div>;
   }
 
+  // [1] 로그인 / 회원가입 화면
   if (!currentStudent) {
     return (
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '40px 24px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fff5f5', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box' }}>
@@ -135,37 +155,51 @@ export default function App() {
         
         <div style={{ backgroundColor: '#ffffff', padding: '32px 24px', borderRadius: '24px', boxShadow: '0 12px 32px rgba(255, 182, 198, 0.15)' }}>
           {!isRegisterMode ? (
+            /* 로그인 폼: 오직 비밀번호 4자리만 입력 */
             <form onSubmit={handleLoginSubmit}>
-              <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🧁 로그인을 해주세요</h3>
+              <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🧁 비밀번호 입력하기</h3>
               <input 
-                type="text" 
-                placeholder="이름을 입력하세요" 
-                value={loginName}
-                onChange={e => setLoginName(e.target.value)}
-                style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#555' }}
+                type="password" 
+                pattern="[0-31]*"
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="비밀번호 숫자 4자리" 
+                value={loginPin}
+                onChange={e => setLoginPin(e.target.value)}
+                style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1.1rem', letterSpacing: '4px', textAlign: 'center', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#555' }}
               />
               <button type="submit" style={{ width: '100%', padding: '16px', backgroundColor: '#ff7aa2', border: 'none', borderRadius: '14px', fontSize: '1.05rem', fontWeight: '700', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(255,122,162,0.2)' }}>
-                입장하기 ✨
+                열기 ✨
               </button>
               <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem', color: '#aaa' }}>
                 처음 왔나요?{' '}
                 <span onClick={() => setIsRegisterMode(true)} style={{ color: '#ff7aa2', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
-                  회원가입하기
+                  나만의 다이어리 만들기
                 </span>
               </p>
             </form>
           ) : (
+            /* 회원가입 폼: 이름 + 비밀번호 4자리 설정 */
             <form onSubmit={handleRegisterSubmit}>
-              <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🍰 새로 가입할 이름 적기</h3>
+              <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🍰 내 다이어리 등록</h3>
               <input 
                 type="text" 
-                placeholder="사용할 이름 입력" 
+                placeholder="이름을 입력하세요" 
                 value={registerName}
                 onChange={e => setRegisterName(e.target.value)}
-                style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#555' }}
+                style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box', marginBottom: '12px', color: '#555' }}
+              />
+              <input 
+                type="password" 
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="비밀번호 숫자 4자리" 
+                value={registerPin}
+                onChange={e => setRegisterPin(e.target.value)}
+                style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1rem', textAlign: 'center', letterSpacing: '4px', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#555' }}
               />
               <button type="submit" style={{ width: '100%', padding: '16px', backgroundColor: '#ff94b4', border: 'none', borderRadius: '14px', fontSize: '1.05rem', fontWeight: '700', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(255,148,180,0.15)' }}>
-                가입 완료하기 🌸
+                만들기 완료하기 🌸
               </button>
               <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem', color: '#aaa' }}>
                 이미 계정이 있나요?{' '}
@@ -180,9 +214,11 @@ export default function App() {
     );
   }
 
+  // [2] 로그인 후 메인 대시보드 화면
   return (
     <div style={{ maxWidth: '420px', margin: '0 auto', padding: '32px 20px 60px 20px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fffdfd', minHeight: '100vh', boxSizing: 'border-box' }}>
       
+      {/* 상단 헤더 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', paddingBottom: '20px', borderBottom: '2px dashed #ffe3e8' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#ff7aa2' }}>🍰 {currentStudent.name}</h2>
@@ -191,6 +227,7 @@ export default function App() {
         <button onClick={handleLogout} style={{ padding: '8px 14px', backgroundColor: '#fff0f3', color: '#ff7aa2', border: '1px solid #ffe3e8', borderRadius: '12px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: '700' }}>로그아웃</button>
       </div>
 
+      {/* 탭 버튼 */}
       <div style={{ display: 'flex', backgroundColor: '#fff0f3', padding: '5px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #ffe3e8' }}>
         <button onClick={() => setActiveTab('my')} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', backgroundColor: activeTab === 'my' ? '#ff7aa2' : 'transparent', color: activeTab === 'my' ? 'white' : '#ff94b4', boxShadow: activeTab === 'my' ? '0 4px 12px rgba(255,122,162,0.2)' : 'none' }}>
           내 캘린더
@@ -200,6 +237,7 @@ export default function App() {
         </button>
       </div>
 
+      {/* 탭 1: 내 보드 */}
       {activeTab === 'my' && (
         <div style={{ padding: '4px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', justifyItems: 'center' }}>
@@ -226,6 +264,7 @@ export default function App() {
         </div>
       )}
 
+      {/* 탭 2: 전체 보기 */}
       {activeTab === 'all' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {students.map(s => {
