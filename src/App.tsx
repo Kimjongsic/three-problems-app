@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient';
 interface Student {
   id: number;
   name: string;
-  password_pin: string; // 비밀번호 필드 추가
+  password_pin: string;
 }
 
 interface ChallengeLog {
@@ -18,18 +18,26 @@ export default function App() {
   const [logs, setLogs] = useState<ChallengeLog[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // 로그인 및 회원가입 관련 상태
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
   const [isRegisterMode, setIsRegisterMode] = useState(false); 
-  const [loginPin, setLoginPin] = useState(''); // 로그인 시 비밀번호만 입력
+  const [loginPin, setLoginPin] = useState(''); 
   const [registerName, setRegisterName] = useState('');
-  const [registerPin, setRegisterPin] = useState(''); // 회원가입 시 4자리 비밀번호
+  const [registerPin, setRegisterPin] = useState(''); 
   
-  // 탭 상태
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 
+  // 연도와 월 설정 (2026년 5월 기준)
   const YEAR = 2026;
   const MONTH = 5;
+
+  // 오늘 날짜 구하기 (한국 시간 기준 포맷: YYYY-MM-DD)
+  const getTodayStr = () => {
+    const now = new Date();
+    const krOffset = 9 * 60 * 60 * 1000; // 한국 표준시 대입
+    const krDate = new Date(now.getTime() + krOffset);
+    return krDate.toISOString().split('T')[0];
+  };
+  const todayStr = getTodayStr();
 
   const getWeekdaysOfMonth = (year: number, month: number): string[] => {
     const weekdays: string[] = [];
@@ -65,12 +73,10 @@ export default function App() {
     if (savedUser) setCurrentStudent(JSON.parse(savedUser));
   }, []);
 
-  // 로그인 처리 (비밀번호 4자리 매칭)
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginPin.trim()) return;
 
-    // 입력한 비밀번호(PIN)와 일치하는 학생 찾기
     const student = students.find(s => s.password_pin === loginPin.trim());
     
     if (student) {
@@ -83,32 +89,27 @@ export default function App() {
     }
   };
 
-  // 회원가입 처리 (이름 + 비밀번호 4자리)
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registerName.trim() || !registerPin.trim()) return;
 
-    // 비밀번호 자릿수 체크 안전장치
     if (registerPin.trim().length !== 4 || isNaN(Number(registerPin))) {
       alert('비밀번호는 숫자 4자리로 설정해 주세요! 🧁');
       return;
     }
 
-    // 이름 중복 검사
     const isNameExist = students.some(s => s.name === registerName.trim());
     if (isNameExist) {
       alert('이미 등록된 이름이에요! 다른 이름을 사용해 주세요. 🍰');
       return;
     }
 
-    // 비밀번호 중복 검사 (비밀번호로만 로그인하므로 중복 방지)
     const isPinExist = students.some(s => s.password_pin === registerPin.trim());
     if (isPinExist) {
       alert('이미 다른 친구가 사용 중인 비밀번호예요! 나만의 비밀번호 4자리를 정해주세요. ⭐');
       return;
     }
 
-    // Supabase 데이터베이스에 새 학생 등록 (이름과 비밀번호 함께 저장)
     const { data, error } = await supabase
       .from('students')
       .insert([{ name: registerName.trim(), password_pin: registerPin.trim() }])
@@ -118,10 +119,39 @@ export default function App() {
       alert('가입이 완료되었어요! 방금 정한 비밀번호로 로그인해 주세요. 💕');
       setRegisterName('');
       setRegisterPin('');
-      setIsRegisterMode(false); // 로그인 화면으로 이동
-      fetchData(); // 데이터 새로고침
+      setIsRegisterMode(false);
+      fetchData();
     } else {
-      alert('회원가입 중 오류가 발생했어요. 다시 시도해 주세요.');
+      alert('회원가입 중 오류가 발생했어요.');
+    }
+  };
+
+  // ★ 2. 루틴 완료 토글 (클릭 시 완료/취소) 기능 함수
+  const handleSquareClick = async (dateStr: string) => {
+    if (!currentStudent) return;
+
+    // 오늘 날짜 외에 다른 과거/미래 날짜는 터치 불가 안전장치
+    if (dateStr !== todayStr) {
+      alert('오늘 날짜의 루틴만 체크할 수 있어요! 🗓️');
+      return;
+    }
+
+    const currentCount = getSolvedCount(currentStudent.id, dateStr);
+    // 현재 완료 상태(3)면 미완료(0)로, 미완료면 완료(3)로 토글
+    const nextCount = currentCount >= 3 ? 0 : 3;
+
+    const { error } = await supabase
+      .from('challenge_logs')
+      .upsert({
+        student_id: currentStudent.id,
+        log_date: dateStr,
+        solved_count: nextCount
+      }, { onConflict: 'student_id, log_date' });
+
+    if (!error) {
+      fetchData(); // 화면 잔디 실시간 갱신
+    } else {
+      alert('로그 저장에 실패했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -155,14 +185,13 @@ export default function App() {
         
         <div style={{ backgroundColor: '#ffffff', padding: '32px 24px', borderRadius: '24px', boxShadow: '0 12px 32px rgba(255, 182, 198, 0.15)' }}>
           {!isRegisterMode ? (
-            /* 로그인 폼: 오직 비밀번호 4자리만 입력 */
             <form onSubmit={handleLoginSubmit}>
               <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🧁 비밀번호 입력하기</h3>
               <input 
                 type="password" 
                 inputMode="numeric"
                 maxLength={4}
-                placeholder="비밀번호(숫자 4자리)" 
+                placeholder="비밀번호 숫자 4자리" 
                 value={loginPin}
                 onChange={e => setLoginPin(e.target.value)}
                 style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1.1rem', letterSpacing: '4px', textAlign: 'center', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#555' }}
@@ -178,7 +207,6 @@ export default function App() {
               </p>
             </form>
           ) : (
-            /* 회원가입 폼: 이름 + 비밀번호 4자리 설정 */
             <form onSubmit={handleRegisterSubmit}>
               <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🍰 내 다이어리 등록</h3>
               <input 
@@ -213,7 +241,7 @@ export default function App() {
     );
   }
 
-  // [2] 로그인 후 메인 대시보드 화면
+  // [2] 로그인 후: 메인 대시보드 화면
   return (
     <div style={{ maxWidth: '420px', margin: '0 auto', padding: '32px 20px 60px 20px', fontFamily: '"Noto Sans KR", sans-serif', backgroundColor: '#fffdfd', minHeight: '100vh', boxSizing: 'border-box' }}>
       
@@ -239,22 +267,33 @@ export default function App() {
       {/* 탭 1: 내 보드 */}
       {activeTab === 'my' && (
         <div style={{ padding: '4px' }}>
+          <p style={{ fontSize: '0.85rem', color: '#ff94b4', textAlign: 'center', marginBottom: '20px', fontWeight: '600' }}>🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '14px', justifyItems: 'center' }}>
             {weekdays.map(d => {
               const count = getSolvedCount(currentStudent.id, d);
               const isDone = count >= 3;
+              const isToday = d === todayStr; // 오늘 날짜 여부 확인
+
               return (
                 <div 
                   key={d} 
-                  title={d}
+                  title={isToday ? "오늘 날짜 🎯" : d}
+                  onClick={() => handleSquareClick(d)} // ★ 클릭 시 루틴 완료/취소 함수 작동
                   style={{ 
                     width: '58px', 
                     height: '58px', 
                     borderRadius: '18px', 
                     backgroundColor: isDone ? '#ff7aa2' : '#fdf3f5', 
-                    border: isDone ? 'none' : '2px dashed #ffd0da',
-                    boxShadow: isDone ? '0 6px 14px rgba(255,122,162,0.3)' : 'none',
-                    cursor: 'pointer'
+                    // ★ 1. 오늘 날짜에 포인트 테두리 스타일 적용 (중요!)
+                    border: isToday 
+                      ? '3px solid #ff4d7d' 
+                      : (isDone ? 'none' : '2px dashed #ffd0da'),
+                    boxShadow: isToday 
+                      ? '0 0 12px rgba(255, 77, 125, 0.6)' 
+                      : (isDone ? '0 6px 14px rgba(255,122,162,0.3)' : 'none'),
+                    transition: 'all 0.2s ease',
+                    cursor: isToday ? 'pointer' : 'default',
+                    transform: isToday ? 'scale(1.03)' : 'none'
                   }} 
                 />
               );
@@ -281,6 +320,8 @@ export default function App() {
                   {weekdays.map(d => {
                     const count = getSolvedCount(s.id, d);
                     const isDone = count >= 3;
+                    const isToday = d === todayStr;
+
                     return (
                       <div 
                         key={d} 
@@ -289,7 +330,10 @@ export default function App() {
                           height: '26px', 
                           borderRadius: '8px', 
                           backgroundColor: isDone ? '#ff94b4' : '#fff8f9',
-                          border: isDone ? 'none' : '1px solid #ffe3e8',
+                          // 전체 보기 창에서도 오늘 날짜는 진한 핑크색 선으로 은은하게 구별
+                          border: isToday 
+                            ? '2px solid #ff4d7d' 
+                            : (isDone ? 'none' : '1px solid #ffe3e8'),
                           boxShadow: isDone ? '0 2px 6px rgba(255,148,180,0.2)' : 'none'
                         }} 
                       />
