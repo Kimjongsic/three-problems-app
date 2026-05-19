@@ -160,10 +160,9 @@ export default function App() {
               <h3 style={{ marginBottom: '20px', color: '#ff94b4', fontSize: '1rem', fontWeight: '700', textAlign: 'center' }}>🧁 비밀번호 입력하기</h3>
               <input 
                 type="password" 
-                pattern="[0-31]*"
                 inputMode="numeric"
                 maxLength={4}
-                placeholder="비밀번호 숫자 4자리" 
+                placeholder="비밀번호(숫자 4자리)" 
                 value={loginPin}
                 onChange={e => setLoginPin(e.target.value)}
                 style={{ width: '100%', padding: '16px', border: '1px solid #ffe3e8', borderRadius: '14px', backgroundColor: '#fff8f9', fontSize: '1.1rem', letterSpacing: '4px', textAlign: 'center', outline: 'none', boxSizing: 'border-box', marginBottom: '16px', color: '#555' }}
