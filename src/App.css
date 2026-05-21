@@ -4,7 +4,7 @@
 body {
   margin: 0;
   font-family: 'Noto Sans KR', sans-serif;
-  background-color: #f3f4f6; /* 차분한 라이트 그레이 */
+  background-color: #faf5ff; /* 화사하고 아주 연한 보라색 배경 */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -16,7 +16,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  color: #4f46e5;
+  color: #a78bfa;
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -29,7 +29,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 40px 24px calc(40px + env(safe-area-inset-bottom));
-  background-color: #f9fafb;
+  background-color: #faf5ff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -49,29 +49,29 @@ body {
 .auth-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #111827;
+  color: #5b21b6; /* 딥 라벤더 */
   letter-spacing: -0.5px;
   margin: 12px 0 0 0;
 }
 
 .auth-subtitle {
-  color: #6b7280;
-  font-size: 1rem;
+  color: #8b5cf6;
+  font-size: 0.95rem;
   margin-top: 8px;
   font-weight: 500;
 }
 
 .auth-card {
   background-color: #ffffff;
-  padding: 32px 24px;
-  border-radius: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 36px 24px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(167, 139, 250, 0.1);
 }
 
 .auth-form-title {
   margin-bottom: 24px;
-  color: #374151;
-  font-size: 1.1rem;
+  color: #7c3aed;
+  font-size: 1.05rem;
   font-weight: 700;
   text-align: center;
 }
@@ -79,46 +79,46 @@ body {
 .auth-input {
   width: 100%;
   padding: 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background-color: #f9fafb;
+  border: 1px solid #e9d5ff;
+  border-radius: 14px;
+  background-color: #faf5ff;
   font-size: 16px;
   outline: none;
   box-sizing: border-box;
   margin-bottom: 14px;
-  color: #1f2937;
-  transition: border-color 0.2s;
+  color: #4c1d95;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .auth-input.pin {
-  letter-spacing: 6px;
+  letter-spacing: 8px;
   text-align: center;
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 800;
 }
 
 .auth-input:focus {
-  border-color: #4f46e5;
+  border-color: #a78bfa;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
 }
 
 .auth-button {
   width: 100%;
   padding: 16px;
-  background-color: #4f46e5;
+  background-color: #a78bfa; /* 소프트 라벤더 메인 컬러 */
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1.05rem;
   font-weight: 700;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.25);
   transition: background-color 0.2s, transform 0.1s;
 }
 
 .auth-button:hover {
-  background-color: #4338ca;
+  background-color: #8b5cf6;
 }
 
 .auth-button:active {
@@ -128,13 +128,13 @@ body {
 .auth-switch-text {
   text-align: center;
   margin-top: 24px;
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: 0.85rem;
+  color: #9ca3af;
 }
 
 .auth-switch-link {
-  color: #4f46e5;
-  font-weight: 600;
+  color: #8b5cf6;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
   padding: 8px;
@@ -148,7 +148,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
-  background-color: #f9fafb;
+  background-color: #fdfcff;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -156,7 +156,7 @@ body {
 .dashboard-header {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 2px dashed #f3e8ff;
 }
 
 .header-top {
@@ -168,25 +168,25 @@ body {
 
 .student-name {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: #111827;
+  color: #5b21b6;
 }
 
 .logout-button {
   padding: 8px 14px;
-  background-color: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  background-color: #faf5ff;
+  color: #8b5cf6;
+  border: 1px solid #e9d5ff;
+  border-radius: 10px;
+  font-size: 0.8rem;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   transition: background-color 0.2s;
 }
 
 .logout-button:active {
-  background-color: #e5e7eb;
+  background-color: #f3e8ff;
 }
 
 .month-selector {
@@ -195,16 +195,16 @@ body {
   align-items: center;
   background-color: #ffffff;
   padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  border: 1px solid #f3e8ff;
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.05);
 }
 
 .month-btn {
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: #4f46e5;
+  color: #a78bfa;
   cursor: pointer;
   font-weight: bold;
   padding: 8px 16px;
@@ -216,21 +216,21 @@ body {
 
 .month-title {
   font-size: 1.1rem;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  color: #5b21b6;
 }
 
 .month-subtitle {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: 0.8rem;
+  color: #8b5cf6;
   display: block;
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 4px;
 }
 
 .highlight-count {
-  color: #ef4444; /* 달성 횟수는 눈에 띄게 레드 오렌지 */
-  font-weight: 700;
+  color: #f472b6; /* 하이라이트는 파스텔 핑크 */
+  font-weight: 800;
 }
 
 /* -------------------------------------
@@ -238,9 +238,9 @@ body {
 -------------------------------------- */
 .tabs-wrapper {
   display: flex;
-  background-color: #e5e7eb;
-  padding: 4px;
-  border-radius: 12px;
+  background-color: #f3e8ff;
+  padding: 5px;
+  border-radius: 14px;
   margin-bottom: 28px;
 }
 
@@ -249,29 +249,29 @@ body {
   padding: 12px 10px;
   border: none;
   border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
   background-color: transparent;
-  color: #4b5563;
+  color: #8b5cf6;
   transition: all 0.2s ease;
 }
 
 .tab-button.active {
   background-color: #ffffff;
-  color: #111827;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #5b21b6;
+  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.15);
 }
 
 /* -------------------------------------
    내 캘린더 (My Board)
 -------------------------------------- */
 .calendar-guide {
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: 0.85rem;
+  color: #a78bfa;
   text-align: center;
   margin-bottom: 16px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .padlet-btn-wrapper {
@@ -288,19 +288,19 @@ body {
   width: 100%;
   max-width: 280px;
   padding: 14px;
-  background-color: #10b981; /* 에메랄드 그린 (행동 유도) */
+  background-color: #f472b6; /* 감성 핑크 버튼 */
   color: white;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   text-decoration: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(244, 114, 182, 0.25);
   transition: transform 0.1s ease, background-color 0.2s;
 }
 
 .padlet-link-btn:active {
   transform: scale(0.97);
-  background-color: #059669;
+  background-color: #db2777;
 }
 
 .calendar-grid {
@@ -315,9 +315,9 @@ body {
   max-width: 64px; 
   aspect-ratio: 1 / 1;
   height: auto;
-  border-radius: 10px; /* 모던한 사각형 */
+  border-radius: 14px; /* 플래너 스티커처럼 귀여운 스퀘어 */
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  border: 1.5px solid #f3e8ff;
   transition: all 0.2s ease;
   box-sizing: border-box;
 
@@ -325,20 +325,20 @@ body {
   justify-content: center;
   align-items: center;
   font-size: 1rem;
-  font-weight: 600;
-  color: #9ca3af; /* 미달성 숫자 컬러 */
+  font-weight: 700;
+  color: #d8b4fe; /* 미달성 숫자 연하게 */
   user-select: none;
 }
 
 .day-block.done {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
-  color: #ffffff; /* 달성 시 선명한 흰색 숫자 */
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  background-color: #a78bfa;
+  border-color: #a78bfa;
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.35);
 }
 
 .day-block.today {
-  border: 2px solid #ef4444; /* 오늘 날짜 강조 */
+  border: 2px solid #f472b6; /* 오늘 날짜는 핑크 테두리 */
   cursor: pointer;
 }
 
@@ -362,18 +362,18 @@ body {
 
 .student-card {
   background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1.5px solid #f3e8ff;
+  border-radius: 16px;
   padding: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.03);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .student-card.me {
-  background-color: #eef2ff; /* 내 카드 강조 배경 */
-  border: 1px solid #c7d2fe;
+  background-color: #faf5ff; /* 내 카드 배경 라벤더 */
+  border: 1.5px solid #d8b4fe;
 }
 
 .student-card-header {
@@ -385,8 +385,8 @@ body {
 }
 
 .student-card-name {
-  font-weight: 700;
-  color: #374151;
+  font-weight: 800;
+  color: #5b21b6;
   font-size: 0.85rem;
   white-space: nowrap;
   overflow: hidden;
@@ -394,26 +394,26 @@ body {
 }
 
 .student-card.me .student-card-name {
-  color: #4f46e5;
+  color: #7c3aed;
 }
 
 .me-badge {
   font-size: 0.6rem;
   color: white;
-  background-color: #4f46e5;
+  background-color: #a78bfa;
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-left: 4px;
   vertical-align: middle;
 }
 
 .student-card-score {
   font-size: 0.75rem;
-  color: #4b5563;
-  font-weight: 600;
-  background-color: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 6px;
+  color: #8b5cf6;
+  font-weight: 700;
+  background-color: #f3e8ff;
+  padding: 2px 8px;
+  border-radius: 8px;
   white-space: nowrap;
 }
 
@@ -426,28 +426,28 @@ body {
 .small-day-block {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 4px;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #f3e8ff;
   box-sizing: border-box;
 
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 0.6rem;
-  font-weight: 500;
-  color: #d1d5db;
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: #e9d5ff;
   user-select: none;
 }
 
 .small-day-block.done {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
-  color: #ffffff;
+  background-color: #c084fc;
+  border-color: #c084fc;
+  color: white;
 }
 
 .small-day-block.today {
-  border: 1.5px solid #ef4444;
+  border: 1.5px solid #f472b6;
 }
 
 .small-empty-block {
@@ -467,20 +467,21 @@ body {
 
 .view-toggle-btn {
   padding: 8px 20px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  border: 1px solid #e9d5ff;
   background-color: #ffffff;
-  color: #4b5563;
+  color: #8b5cf6;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .view-toggle-btn.active {
-  background-color: #4b5563;
+  background-color: #a78bfa;
   color: white;
-  border-color: #4b5563;
+  border-color: #a78bfa;
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.2);
 }
 
 /* -------------------------------------
@@ -490,12 +491,11 @@ body {
   text-align: center;
   background-color: #ffffff;
   padding: 16px;
-  border-radius: 12px;
-  font-weight: 700;
-  color: #111827;
+  border-radius: 16px;
+  font-weight: 800;
+  color: #5b21b6;
   margin-bottom: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1.5px dashed #d8b4fe;
   font-size: 1.05rem;
 }
 
@@ -507,10 +507,10 @@ body {
 
 .yearly-month-card {
   background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid #f3e8ff;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.05);
 }
 
 .yearly-month-header {
@@ -522,16 +522,16 @@ body {
 
 .yearly-month-title {
   margin: 0;
-  font-size: 0.9rem;
-  color: #374151;
-  font-weight: 700;
+  font-size: 0.95rem;
+  color: #5b21b6;
+  font-weight: 800;
 }
 
 .yearly-month-score {
   font-size: 0.75rem;
-  color: #4f46e5;
-  background-color: #eef2ff;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-weight: 600;
+  color: #a78bfa;
+  background-color: #faf5ff;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-weight: 700;
 }
