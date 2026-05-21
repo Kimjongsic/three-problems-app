@@ -79,6 +79,29 @@ export default function App() {
     fetchData(isInitialLoad);
   }, [currentYear]); 
 
+  // 👇 여기부터 아래의 코드를 복사해서 추가해 주세요! 👇
+  useEffect(() => {
+    // 💡 Supabase 실시간(Realtime) 구독 설정
+    // challenge_logs 테이블에 변경 사항(Insert, Update)이 생기면 즉시 감지합니다.
+    const subscription = supabase
+      .channel('challenge_logs_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'challenge_logs' },
+        () => {
+          // 변경이 감지되면 화면 깜빡임 없이 백그라운드에서 데이터를 최신화합니다.
+          fetchData(false);
+        }
+      )
+      .subscribe();
+
+    // 앱(컴포넌트)이 종료될 때 구독을 안전하게 해제합니다.
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [currentYear]); 
+  // 👆 여기까지 추가해 주세요! 👆
+
   useEffect(() => {
     const savedUser = localStorage.getItem('routine_user');
     if (savedUser) setCurrentStudent(JSON.parse(savedUser));
