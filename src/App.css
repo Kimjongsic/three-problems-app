@@ -4,7 +4,7 @@
 body {
   margin: 0;
   font-family: 'Noto Sans KR', sans-serif;
-  background-color: #fcfcfc;
+  background-color: #f3f4f6; /* 차분한 라이트 그레이 */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -16,9 +16,9 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  color: #ffb3c6;
-  font-size: 1.2rem;
-  font-weight: bold;
+  color: #4f46e5;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 /* -------------------------------------
@@ -29,7 +29,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 40px 24px calc(40px + env(safe-area-inset-bottom));
-  background-color: #fff5f5;
+  background-color: #f9fafb;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -43,19 +43,19 @@ body {
 }
 
 .auth-emoji {
-  font-size: 4rem;
+  font-size: 3.5rem;
 }
 
 .auth-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #ff7aa2;
+  color: #111827;
   letter-spacing: -0.5px;
   margin: 12px 0 0 0;
 }
 
 .auth-subtitle {
-  color: #ffa6c9;
+  color: #6b7280;
   font-size: 1rem;
   margin-top: 8px;
   font-weight: 500;
@@ -63,14 +63,14 @@ body {
 
 .auth-card {
   background-color: #ffffff;
-  padding: 32px 20px;
-  border-radius: 28px;
-  box-shadow: 0 16px 40px rgba(255, 182, 198, 0.15);
+  padding: 32px 24px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .auth-form-title {
   margin-bottom: 24px;
-  color: #ff94b4;
+  color: #374151;
   font-size: 1.1rem;
   font-weight: 700;
   text-align: center;
@@ -78,15 +78,16 @@ body {
 
 .auth-input {
   width: 100%;
-  padding: 18px 16px;
-  border: 1px solid #ffe3e8;
-  border-radius: 16px;
-  background-color: #fff8f9;
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background-color: #f9fafb;
   font-size: 16px;
   outline: none;
   box-sizing: border-box;
   margin-bottom: 14px;
-  color: #444;
+  color: #1f2937;
+  transition: border-color 0.2s;
 }
 
 .auth-input.pin {
@@ -97,39 +98,43 @@ body {
 }
 
 .auth-input:focus {
-  border-color: #ff7aa2;
-  background-color: #fff;
-  box-shadow: 0 0 0 3px rgba(255, 122, 162, 0.1);
+  border-color: #4f46e5;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .auth-button {
   width: 100%;
-  padding: 18px;
-  background-color: #ff7aa2;
+  padding: 16px;
+  background-color: #4f46e5;
   border: none;
-  border-radius: 16px;
-  font-size: 1.1rem;
+  border-radius: 12px;
+  font-size: 1.05rem;
   font-weight: 700;
   color: white;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(255, 122, 162, 0.25);
+  box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
   transition: background-color 0.2s, transform 0.1s;
 }
 
+.auth-button:hover {
+  background-color: #4338ca;
+}
+
 .auth-button:active {
-  transform: scale(0.96);
+  transform: scale(0.98);
 }
 
 .auth-switch-text {
   text-align: center;
   margin-top: 24px;
   font-size: 0.9rem;
-  color: #aaa;
+  color: #6b7280;
 }
 
 .auth-switch-link {
-  color: #ff7aa2;
-  font-weight: 700;
+  color: #4f46e5;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
   padding: 8px;
@@ -143,7 +148,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
-  background-color: #fffdfd;
+  background-color: #f9fafb;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -151,7 +156,7 @@ body {
 .dashboard-header {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 2px dashed #ffe3e8;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .header-top {
@@ -163,40 +168,46 @@ body {
 
 .student-name {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  color: #ff7aa2;
+  color: #111827;
 }
 
 .logout-button {
-  padding: 10px 16px;
-  background-color: #fff0f3;
-  color: #ff7aa2;
-  border: 1px solid #ffe3e8;
-  border-radius: 14px;
+  padding: 8px 14px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   font-size: 0.85rem;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.logout-button:active {
+  background-color: #e5e7eb;
 }
 
 .month-selector {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #fff5f7;
+  background-color: #ffffff;
   padding: 12px 16px;
-  border-radius: 20px;
-  border: 1px dashed #ffd0da;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .month-btn {
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: #ff7aa2;
+  color: #4f46e5;
   cursor: pointer;
   font-weight: bold;
-  padding: 10px 16px;
+  padding: 8px 16px;
 }
 
 .month-info {
@@ -204,21 +215,22 @@ body {
 }
 
 .month-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #ff7aa2;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .month-subtitle {
   font-size: 0.85rem;
-  color: #ff94b4;
+  color: #6b7280;
   display: block;
-  font-weight: 600;
+  font-weight: 500;
   margin-top: 4px;
 }
 
 .highlight-count {
-  color: #ff4d7d;
+  color: #ef4444; /* 달성 횟수는 눈에 띄게 레드 오렌지 */
+  font-weight: 700;
 }
 
 /* -------------------------------------
@@ -226,30 +238,29 @@ body {
 -------------------------------------- */
 .tabs-wrapper {
   display: flex;
-  background-color: #fff0f3;
-  padding: 6px;
-  border-radius: 18px;
+  background-color: #e5e7eb;
+  padding: 4px;
+  border-radius: 12px;
   margin-bottom: 28px;
-  border: 1px solid #ffe3e8;
 }
 
 .tab-button {
   flex: 1;
-  padding: 14px 10px;
+  padding: 12px 10px;
   border: none;
-  border-radius: 14px;
+  border-radius: 10px;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   background-color: transparent;
-  color: #ff94b4;
+  color: #4b5563;
   transition: all 0.2s ease;
 }
 
 .tab-button.active {
-  background-color: #ff7aa2;
-  color: white;
-  box-shadow: 0 4px 14px rgba(255, 122, 162, 0.25);
+  background-color: #ffffff;
+  color: #111827;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* -------------------------------------
@@ -257,16 +268,45 @@ body {
 -------------------------------------- */
 .calendar-guide {
   font-size: 0.9rem;
-  color: #ff94b4;
+  color: #6b7280;
   text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.padlet-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.padlet-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+  padding: 14px;
+  background-color: #10b981; /* 에메랄드 그린 (행동 유도) */
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+  transition: transform 0.1s ease, background-color 0.2s;
+}
+
+.padlet-link-btn:active {
+  transform: scale(0.97);
+  background-color: #059669;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: min(3vw, 14px); 
+  gap: min(3vw, 12px); 
   justify-items: center;
 }
 
@@ -275,33 +315,31 @@ body {
   max-width: 64px; 
   aspect-ratio: 1 / 1;
   height: auto;
-  border-radius: 25%;
-  background-color: #fdf3f5;
-  border: 2px dashed #ffd0da;
+  border-radius: 10px; /* 모던한 사각형 */
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
   transition: all 0.2s ease;
   box-sizing: border-box;
 
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: rgba(255, 122, 162, 0.45);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #9ca3af; /* 미달성 숫자 컬러 */
   user-select: none;
 }
 
 .day-block.done {
-  background-color: #ff7aa2;
-  border: none;
-  box-shadow: 0 6px 14px rgba(255, 122, 162, 0.3);
-  color: rgba(255, 255, 255, 0.75);
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff; /* 달성 시 선명한 흰색 숫자 */
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
 }
 
 .day-block.today {
-  border: 3px solid #ff4d7d;
-  box-shadow: 0 0 12px rgba(255, 77, 125, 0.6);
+  border: 2px solid #ef4444; /* 오늘 날짜 강조 */
   cursor: pointer;
-  transform: scale(1.05);
 }
 
 .day-block.today:active {
@@ -314,7 +352,7 @@ body {
 }
 
 /* -------------------------------------
-   우리반 다이어리 (All Board) 
+   우리 반 현황 (All Board) 
 -------------------------------------- */
 .all-board-list {
   display: grid;
@@ -323,59 +361,59 @@ body {
 }
 
 .student-card {
-  background-color: white;
-  border: 1px solid #f9ebed;
-  border-radius: 16px;
-  padding: 10px;
-  box-shadow: 0 4px 12px rgba(255, 182, 198, 0.05);
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .student-card.me {
-  background-color: #fff9fa;
-  border: 2px solid #ffb3c6;
+  background-color: #eef2ff; /* 내 카드 강조 배경 */
+  border: 1px solid #c7d2fe;
 }
 
 .student-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  gap: 2px;
+  margin-bottom: 10px;
+  gap: 4px;
 }
 
 .student-card-name {
-  font-weight: 800;
-  color: #555;
-  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.85rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .student-card.me .student-card-name {
-  color: #ff4d7d;
+  color: #4f46e5;
 }
 
 .me-badge {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: white;
-  background-color: #ff7aa2;
-  padding: 1px 4px;
-  border-radius: 10px;
-  margin-left: 2px;
+  background-color: #4f46e5;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 4px;
   vertical-align: middle;
 }
 
 .student-card-score {
-  font-size: 0.7rem;
-  color: #ff7aa2;
-  font-weight: 700;
-  background-color: #fff0f3;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-weight: 600;
+  background-color: #f3f4f6;
   padding: 2px 6px;
-  border-radius: 8px;
+  border-radius: 6px;
   white-space: nowrap;
 }
 
@@ -388,29 +426,28 @@ body {
 .small-day-block {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 5px;
-  background-color: #fff8f9;
-  border: 1px solid #ffe3e8;
+  border-radius: 4px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
   box-sizing: border-box;
 
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 0.6rem;
-  font-weight: 600;
-  color: rgba(255, 122, 162, 0.35);
+  font-weight: 500;
+  color: #d1d5db;
   user-select: none;
 }
 
 .small-day-block.done {
-  background-color: #ff94b4;
-  border: none;
-  box-shadow: 0 1px 4px rgba(255, 148, 180, 0.15);
-  color: rgba(255, 255, 255, 0.75);
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
 }
 
 .small-day-block.today {
-  border: 1.5px solid #ff4d7d;
+  border: 1.5px solid #ef4444;
 }
 
 .small-empty-block {
@@ -424,27 +461,26 @@ body {
 .view-toggle-wrapper {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
 .view-toggle-btn {
   padding: 8px 20px;
-  border-radius: 20px;
-  border: 1px solid #ffe3e8;
-  background-color: white;
-  color: #ff94b4;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #4b5563;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .view-toggle-btn.active {
-  background-color: #ff94b4;
+  background-color: #4b5563;
   color: white;
-  border-color: #ff94b4;
-  box-shadow: 0 4px 10px rgba(255, 148, 180, 0.2);
+  border-color: #4b5563;
 }
 
 /* -------------------------------------
@@ -452,14 +488,15 @@ body {
 -------------------------------------- */
 .yearly-total-score {
   text-align: center;
-  background-color: #fff5f7;
-  padding: 14px;
-  border-radius: 16px;
-  font-weight: 800;
-  color: #ff7aa2;
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #111827;
   margin-bottom: 20px;
-  border: 2px dashed #ffd0da;
-  font-size: 1.1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-size: 1.05rem;
 }
 
 .yearly-grid {
@@ -469,32 +506,32 @@ body {
 }
 
 .yearly-month-card {
-  background-color: white;
-  border: 1px solid #f9ebed;
-  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 4px 12px rgba(255, 182, 198, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .yearly-month-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .yearly-month-title {
   margin: 0;
-  font-size: 0.95rem;
-  color: #ff7aa2;
-  font-weight: 800;
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 700;
 }
 
 .yearly-month-score {
   font-size: 0.75rem;
-  color: #ff7aa2;
-  background-color: #fff0f3;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-weight: 700;
+  color: #4f46e5;
+  background-color: #eef2ff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
 }

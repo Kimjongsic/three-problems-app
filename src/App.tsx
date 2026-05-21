@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css'; 
 
+// 페들릿 주소를 넣어주세요.
+const PADLET_URL = "https://padlet.com"; 
+
 interface Student {
   id: number;
   name: string;
@@ -39,7 +42,6 @@ export default function App() {
   };
   const todayStr = getTodayStr();
 
-  // 평일(월~금) 날짜만 배열로 반환
   const getWeekdaysOfMonth = (year: number, month: number): string[] => {
     const weekdays: string[] = [];
     const date = new Date(year, month - 1, 1);
@@ -53,9 +55,8 @@ export default function App() {
     return weekdays;
   };
 
-  // 1일의 요일을 기준으로 5열 그리드에서 채워야 할 빈칸 갯수 계산
   const getEmptyBlocksCount = (year: number, month: number): number => {
-    const firstDay = new Date(year, month - 1, 1).getDay(); // 0:일, 1:월, ... 6:토
+    const firstDay = new Date(year, month - 1, 1).getDay();
     if (firstDay === 0 || firstDay === 6) return 0;
     return firstDay - 1;
   };
@@ -88,7 +89,6 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear]); 
 
-  // 실시간 동기화
   useEffect(() => {
     const subscription = supabase
       .channel('challenge_logs_changes')
@@ -143,7 +143,7 @@ export default function App() {
       setLoginPin('');
       localStorage.setItem('routine_user', JSON.stringify(student));
     } else {
-      alert('비밀번호가 일치하는 학생이 없어요. 다시 확인해 주세요! 🎀');
+      alert('일치하는 학생 정보가 없습니다. 비밀번호를 다시 확인해주세요.');
     }
   };
 
@@ -152,19 +152,19 @@ export default function App() {
     if (!registerName.trim() || !registerPin.trim()) return;
 
     if (registerPin.trim().length !== 4 || isNaN(Number(registerPin))) {
-      alert('비밀번호는 숫자 4자리로 설정해 주세요! 🧁');
+      alert('비밀번호는 숫자 4자리로 설정해야 합니다.');
       return;
     }
 
     const isNameExist = students.some(s => s.name === registerName.trim());
     if (isNameExist) {
-      alert('이미 등록된 이름이에요! 다른 이름을 사용해 주세요. 🍰');
+      alert('이미 등록된 이름입니다. 다른 이름을 사용해주세요.');
       return;
     }
 
     const isPinExist = students.some(s => s.password_pin === registerPin.trim());
     if (isPinExist) {
-      alert('이미 다른 친구가 사용 중인 비밀번호예요! 나만의 비밀번호 4자리를 정해주세요. ⭐');
+      alert('이미 사용 중인 비밀번호입니다. 다른 4자리 숫자를 입력해주세요.');
       return;
     }
 
@@ -174,13 +174,13 @@ export default function App() {
       .select();
 
     if (!error && data && data.length > 0) {
-      alert('가입이 완료되었어요! 방금 정한 비밀번호로 로그인해 주세요. 💕');
+      alert('등록이 완료되었습니다. 설정한 비밀번호로 로그인해주세요.');
       setRegisterName('');
       setRegisterPin('');
       setIsRegisterMode(false);
       fetchData(false);
     } else {
-      alert('회원가입 중 오류가 발생했어요.');
+      alert('회원 등록 중 오류가 발생했습니다.');
     }
   };
 
@@ -188,7 +188,7 @@ export default function App() {
     if (!currentStudent) return;
 
     if (dateStr !== todayStr) {
-      alert('오늘 날짜의 루틴만 체크할 수 있어요! 🗓️');
+      alert('오늘 날짜의 루틴만 체크할 수 있습니다.');
       return;
     }
 
@@ -214,7 +214,7 @@ export default function App() {
       }, { onConflict: 'student_id, log_date' });
 
     if (error) {
-      alert('저장에 실패했습니다. 다시 시도해 주세요.');
+      alert('저장에 실패했습니다. 다시 시도해주세요.');
       fetchData(false);
     }
   };
@@ -241,7 +241,6 @@ export default function App() {
     return getSuccessDaysCountByMonth(studentId, currentYear, currentMonth);
   };
 
-  // 💡 해당 연도의 1년 총 달성 횟수를 구하는 함수
   const getSuccessDaysCountByYear = (studentId: number, year: number) => {
     return logs.filter(l => {
       if (l.student_id !== studentId || l.solved_count < 3) return false;
@@ -251,44 +250,44 @@ export default function App() {
   };
 
   if (loading && students.length === 0) {
-    return <div className="loading-screen">💖 소중한 루틴 찾아오는 중...</div>;
+    return <div className="loading-screen">데이터를 불러오는 중입니다...</div>;
   }
 
   if (!currentStudent) {
     return (
       <div className="auth-container">
         <div className="auth-header">
-          <div className="auth-emoji">🎀</div>
-          <h1 className="auth-title">Daily Log_</h1>
-          <p className="auth-subtitle">오늘도 반짝이는 하루를 채워볼까요?</p>
+          <div className="auth-emoji">📖</div>
+          <h1 className="auth-title">Daily Challenge</h1>
+          <p className="auth-subtitle">하루 3문제, 꾸준함의 힘을 기록하세요.</p>
         </div>
         
         <div className="auth-card">
           {!isRegisterMode ? (
             <form onSubmit={handleLoginSubmit}>
-              <h3 className="auth-form-title">🧁 비밀번호 입력하기</h3>
+              <h3 className="auth-form-title">로그인</h3>
               <input 
                 type="password" 
                 inputMode="numeric"
                 maxLength={4}
-                placeholder="비밀번호 숫자 4자리" 
+                placeholder="PIN 번호 4자리" 
                 value={loginPin}
                 onChange={e => setLoginPin(e.target.value)}
                 className="auth-input pin"
               />
               <button type="submit" className="auth-button">
-                열기 ✨
+                시작하기
               </button>
               <p className="auth-switch-text">
-                처음 왔나요?{' '}
+                처음 방문하셨나요?{' '}
                 <span onClick={() => setIsRegisterMode(true)} className="auth-switch-link">
-                  나만의 다이어리 만들기
+                  신규 등록하기
                 </span>
               </p>
             </form>
           ) : (
             <form onSubmit={handleRegisterSubmit}>
-              <h3 className="auth-form-title">🍰 내 다이어리 등록</h3>
+              <h3 className="auth-form-title">신규 학생 등록</h3>
               <input 
                 type="text" 
                 placeholder="이름을 입력하세요" 
@@ -300,18 +299,18 @@ export default function App() {
                 type="password" 
                 inputMode="numeric"
                 maxLength={4}
-                placeholder="비밀번호 숫자 4자리" 
+                placeholder="PIN 번호 4자리 설정" 
                 value={registerPin}
                 onChange={e => setRegisterPin(e.target.value)}
                 className="auth-input pin"
               />
-              <button type="submit" className="auth-button" style={{ backgroundColor: '#ff94b4' }}>
-                만들기 완료하기 🌸
+              <button type="submit" className="auth-button">
+                등록 완료
               </button>
               <p className="auth-switch-text">
-                이미 계정이 있나요?{' '}
+                이미 등록하셨나요?{' '}
                 <span onClick={() => setIsRegisterMode(false)} className="auth-switch-link">
-                  로그인하러 가기
+                  로그인하기
                 </span>
               </p>
             </form>
@@ -326,7 +325,7 @@ export default function App() {
       
       <div className="dashboard-header">
         <div className="header-top">
-          <h2 className="student-name">🍰 {currentStudent.name}</h2>
+          <h2 className="student-name">{currentStudent.name} 님</h2>
           <button onClick={handleLogout} className="logout-button">로그아웃</button>
         </div>
 
@@ -335,7 +334,7 @@ export default function App() {
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
             <span className="month-subtitle">
-              달성 횟수 ✨ <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}회</span>
+              월간 달성률 <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}일</span>
             </span>
           </div>
           <button onClick={handleNextMonth} className="month-btn" aria-label="다음 달">▶</button>
@@ -347,13 +346,13 @@ export default function App() {
           onClick={() => setActiveTab('my')} 
           className={`tab-button ${activeTab === 'my' ? 'active' : ''}`}
         >
-          내 캘린더
+          나의 캘린더
         </button>
         <button 
           onClick={() => setActiveTab('all')} 
           className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
         >
-          우리반 다이어리 👥
+          우리 반 현황
         </button>
       </div>
 
@@ -364,20 +363,31 @@ export default function App() {
               className={`view-toggle-btn ${myCalendarView === 'month' ? 'active' : ''}`} 
               onClick={() => setMyCalendarView('month')}
             >
-              한 달 보기
+              월별 보기
             </button>
             <button 
               className={`view-toggle-btn ${myCalendarView === 'year' ? 'active' : ''}`} 
               onClick={() => setMyCalendarView('year')}
             >
-              1년 전체 보기
+              연간 보기
             </button>
           </div>
 
           {myCalendarView === 'month' ? (
             <>
-              <p className="calendar-guide">🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
+              <p className="calendar-guide">해당 날짜를 클릭하여 오늘의 목표 달성을 기록하세요.</p>
               
+              <div className="padlet-btn-wrapper">
+                <a 
+                  href={PADLET_URL} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="padlet-link-btn"
+                >
+                  📝 문제 제출용 페들릿 이동
+                </a>
+              </div>
+
               <div className="calendar-grid">
                 {Array.from({ length: getEmptyBlocksCount(currentYear, currentMonth) }).map((_, idx) => (
                   <div key={`empty-${idx}`} className="empty-block" />
@@ -387,12 +397,12 @@ export default function App() {
                   const count = getSolvedCount(currentStudent.id, d);
                   const isDone = count >= 3;
                   const isToday = d === todayStr;
-                  const dayNum = Number(d.split('-')[2]); // 날짜(일) 추출
+                  const dayNum = Number(d.split('-')[2]); 
 
                   return (
                     <div 
                       key={d} 
-                      title={isToday ? "오늘 날짜 🎯" : d}
+                      title={isToday ? "오늘 날짜" : d}
                       onClick={() => handleSquareClick(d)} 
                       className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
                     >
@@ -404,22 +414,20 @@ export default function App() {
             </>
           ) : (
             <div className="yearly-view-container">
-              {/* 💡 1년 총 달성 횟수 배너 */}
               <div className="yearly-total-score">
-                🏆 {currentYear}년 총 달성 횟수: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}회</span>
+                🔥 {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}일</span>
               </div>
               <div className="yearly-grid">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
                   const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
                   const emptyCount = getEmptyBlocksCount(currentYear, month);
-                  // 💡 각 월의 달성 횟수 계산
                   const monthSuccessCount = getSuccessDaysCountByMonth(currentStudent.id, currentYear, month);
                   
                   return (
                     <div key={month} className="yearly-month-card">
                       <div className="yearly-month-header">
                         <h4 className="yearly-month-title">{month}월</h4>
-                        <span className="yearly-month-score">✨ {monthSuccessCount}회</span>
+                        <span className="yearly-month-score">✓ {monthSuccessCount}일</span>
                       </div>
                       <div className="small-calendar-grid">
                         {Array.from({ length: emptyCount }).map((_, idx) => (
@@ -429,7 +437,7 @@ export default function App() {
                           const count = getSolvedCount(currentStudent.id, d);
                           const isDone = count >= 3;
                           const isToday = d === todayStr;
-                          const dayNum = Number(d.split('-')[2]); // 날짜 추출
+                          const dayNum = Number(d.split('-')[2]); 
 
                           return (
                             <div 
@@ -464,9 +472,9 @@ export default function App() {
                 <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
                   <div className="student-card-header">
                     <span className="student-card-name" title={s.name}>
-                      🎀 {s.name} {isMe && <span className="me-badge">나</span>}
+                      {s.name} {isMe && <span className="me-badge">나</span>}
                     </span>
-                    <span className="student-card-score">✨ {getSuccessDaysCount(s.id)}회</span>
+                    <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
                   </div>
                   
                   <div className="small-calendar-grid">
@@ -477,7 +485,7 @@ export default function App() {
                       const count = getSolvedCount(s.id, d);
                       const isDone = count >= 3;
                       const isToday = d === todayStr;
-                      const dayNum = Number(d.split('-')[2]); // 날짜 추출
+                      const dayNum = Number(d.split('-')[2]); 
 
                       return (
                         <div 
