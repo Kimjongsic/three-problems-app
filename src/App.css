@@ -254,7 +254,7 @@ body {
 }
 
 /* -------------------------------------
-   내 캘린더 (My Board) - 💡 5열 평일 달력 복원
+   내 캘린더 (My Board)
 -------------------------------------- */
 .calendar-guide {
   font-size: 0.9rem;
@@ -262,16 +262,6 @@ body {
   text-align: center;
   margin-bottom: 20px;
   font-weight: 600;
-}
-
-.calendar-weekdays {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 월~금 5열 */
-  justify-items: center;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: #ffb3c6;
 }
 
 .calendar-grid {
@@ -291,12 +281,23 @@ body {
   border: 2px dashed #ffd0da;
   transition: all 0.2s ease;
   box-sizing: border-box;
+
+  /* 날짜 텍스트 가운데 정렬 및 흐리게 표시 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: rgba(255, 122, 162, 0.45);
+  user-select: none;
 }
 
 .day-block.done {
   background-color: #ff7aa2;
   border: none;
   box-shadow: 0 6px 14px rgba(255, 122, 162, 0.3);
+  /* 불이 켜지면 글자 색상을 흰색으로 부드럽게 변경 */
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .day-block.today {
@@ -394,12 +395,23 @@ body {
   background-color: #fff8f9;
   border: 1px solid #ffe3e8;
   box-sizing: border-box;
+
+  /* 미니 달력 날짜 텍스트 가운데 정렬 및 흐리게 표시 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(255, 122, 162, 0.35);
+  user-select: none;
 }
 
 .small-day-block.done {
   background-color: #ff94b4;
   border: none;
   box-shadow: 0 1px 4px rgba(255, 148, 180, 0.15);
+  /* 불이 켜지면 글자 색상을 흰색으로 부드럽게 변경 */
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .small-day-block.today {
