@@ -241,11 +241,19 @@ export default function App() {
     return getSuccessDaysCountByMonth(studentId, currentYear, currentMonth);
   };
 
+  // 💡 해당 연도의 1년 총 달성 횟수를 구하는 함수
+  const getSuccessDaysCountByYear = (studentId: number, year: number) => {
+    return logs.filter(l => {
+      if (l.student_id !== studentId || l.solved_count < 3) return false;
+      const logDate = new Date(l.log_date);
+      return logDate.getFullYear() === year;
+    }).length;
+  };
+
   if (loading && students.length === 0) {
     return <div className="loading-screen">💖 소중한 루틴 찾아오는 중...</div>;
   }
 
-  // 💡 삭제되었던 로그인/회원가입 화면 완벽 복구
   if (!currentStudent) {
     return (
       <div className="auth-container">
@@ -313,7 +321,6 @@ export default function App() {
     );
   }
 
-  // 로그인 완료 후 대시보드 화면
   return (
     <div className="dashboard-container">
       
@@ -396,39 +403,51 @@ export default function App() {
               </div>
             </>
           ) : (
-            <div className="yearly-grid">
-              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
-                const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
-                const emptyCount = getEmptyBlocksCount(currentYear, month);
-                return (
-                  <div key={month} className="yearly-month-card">
-                    <h4 className="yearly-month-title">{month}월</h4>
-                    <div className="small-calendar-grid">
-                      {Array.from({ length: emptyCount }).map((_, idx) => (
-                        <div key={`empty-yr-${month}-${idx}`} className="small-empty-block" />
-                      ))}
-                      {monthWeekdays.map(d => {
-                        const count = getSolvedCount(currentStudent.id, d);
-                        const isDone = count >= 3;
-                        const isToday = d === todayStr;
-                        const dayNum = Number(d.split('-')[2]); // 날짜 추출
+            <div className="yearly-view-container">
+              {/* 💡 1년 총 달성 횟수 배너 */}
+              <div className="yearly-total-score">
+                🏆 {currentYear}년 총 달성 횟수: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}회</span>
+              </div>
+              <div className="yearly-grid">
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
+                  const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
+                  const emptyCount = getEmptyBlocksCount(currentYear, month);
+                  // 💡 각 월의 달성 횟수 계산
+                  const monthSuccessCount = getSuccessDaysCountByMonth(currentStudent.id, currentYear, month);
+                  
+                  return (
+                    <div key={month} className="yearly-month-card">
+                      <div className="yearly-month-header">
+                        <h4 className="yearly-month-title">{month}월</h4>
+                        <span className="yearly-month-score">✨ {monthSuccessCount}회</span>
+                      </div>
+                      <div className="small-calendar-grid">
+                        {Array.from({ length: emptyCount }).map((_, idx) => (
+                          <div key={`empty-yr-${month}-${idx}`} className="small-empty-block" />
+                        ))}
+                        {monthWeekdays.map(d => {
+                          const count = getSolvedCount(currentStudent.id, d);
+                          const isDone = count >= 3;
+                          const isToday = d === todayStr;
+                          const dayNum = Number(d.split('-')[2]); // 날짜 추출
 
-                        return (
-                          <div 
-                            key={d} 
-                            title={d}
-                            onClick={() => handleSquareClick(d)}
-                            className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
-                            style={{ cursor: isToday ? 'pointer' : 'default' }}
-                          >
-                            {dayNum}
-                          </div>
-                        );
-                      })}
+                          return (
+                            <div 
+                              key={d} 
+                              title={d}
+                              onClick={() => handleSquareClick(d)}
+                              className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
+                              style={{ cursor: isToday ? 'pointer' : 'default' }}
+                            >
+                              {dayNum}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
