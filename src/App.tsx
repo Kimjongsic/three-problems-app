@@ -26,6 +26,7 @@ export default function App() {
   const [registerPin, setRegisterPin] = useState(''); 
   
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
+  const [myCalendarView, setMyCalendarView] = useState<'month' | 'year'>('month');
 
   const [currentYear, setCurrentYear] = useState(2026);
   const [currentMonth, setCurrentMonth] = useState(5);
@@ -58,8 +59,8 @@ export default function App() {
     
     const { data: studentData } = await supabase.from('students').select('*').order('id', { ascending: true });
     
-    const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-    const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-31`;
+    const startDate = `${currentYear}-01-01`;
+    const endDate = `${currentYear}-12-31`;
     
     const { data: logData } = await supabase
       .from('challenge_logs')
@@ -70,12 +71,13 @@ export default function App() {
     if (studentData) setStudents(studentData);
     if (logData) setLogs(logData);
     
-    setLoading(false);
+    if (showGlobalLoading) setLoading(false);
   };
 
   useEffect(() => {
-    fetchData(true);
-  }, [currentYear, currentMonth]);
+    const isInitialLoad = students.length === 0;
+    fetchData(isInitialLoad);
+  }, [currentYear]); 
 
   useEffect(() => {
     const savedUser = localStorage.getItem('routine_user');
@@ -109,6 +111,7 @@ export default function App() {
     if (student) {
       setCurrentStudent(student);
       setActiveTab('my');
+      setMyCalendarView('month');
       setLoginPin('');
       localStorage.setItem('routine_user', JSON.stringify(student));
     } else {
@@ -198,20 +201,27 @@ export default function App() {
     return log ? log.solved_count : 0;
   };
 
-  const getSuccessDaysCount = (studentId: number) => {
-    return logs.filter(l => l.student_id === studentId && l.solved_count >= 3).length;
+  const getSuccessDaysCountByMonth = (studentId: number, year: number, month: number) => {
+    return logs.filter(l => {
+      if (l.student_id !== studentId || l.solved_count < 3) return false;
+      const logDate = new Date(l.log_date);
+      return logDate.getFullYear() === year && (logDate.getMonth() + 1) === month;
+    }).length;
   };
 
-  if (loading) {
+  const getSuccessDaysCount = (studentId: number) => {
+    return getSuccessDaysCountByMonth(studentId, currentYear, currentMonth);
+  };
+
+  if (loading && students.length === 0) {
     return <div className="loading-screen">💖 소중한 루틴 찾아오는 중...</div>;
   }
 
-  // [1] 로그인 / 회원가입 화면
   if (!currentStudent) {
     return (
       <div className="auth-container">
         <div className="auth-header">
-          <span className="auth-emoji">🎀</span>
+          <div className="auth-emoji">🎀</div>
           <h1 className="auth-title">Daily Log_</h1>
           <p className="auth-subtitle">오늘도 반짝이는 하루를 채워볼까요?</p>
         </div>
@@ -274,11 +284,9 @@ export default function App() {
     );
   }
 
-  // [2] 로그인 후 메인 대시보드 화면
   return (
     <div className="dashboard-container">
       
-      {/* 상단 헤더 및 월 선택 네비게이터 바 */}
       <div className="dashboard-header">
         <div className="header-top">
           <h2 className="student-name">🍰 {currentStudent.name}</h2>
@@ -286,18 +294,17 @@ export default function App() {
         </div>
 
         <div className="month-selector">
-          <button onClick={handlePrevMonth} className="month-btn">◀</button>
+          <button onClick={handlePrevMonth} className="month-btn" aria-label="이전 달">◀</button>
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
             <span className="month-subtitle">
               달성 횟수 ✨ <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}회</span>
             </span>
           </div>
-          <button onClick={handleNextMonth} className="month-btn">▶</button>
+          <button onClick={handleNextMonth} className="month-btn" aria-label="다음 달">▶</button>
         </div>
       </div>
 
-      {/* 탭 버튼 */}
       <div className="tabs-wrapper">
         <button 
           onClick={() => setActiveTab('my')} 
@@ -313,61 +320,109 @@ export default function App() {
         </button>
       </div>
 
-      {/* 탭 1: 내 보드 */}
       {activeTab === 'my' && (
-        <div style={{ padding: '4px' }}>
-          <p className="calendar-guide">🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
-          <div className="calendar-grid">
-            {weekdays.map(d => {
-              const count = getSolvedCount(currentStudent.id, d);
-              const isDone = count >= 3;
-              const isToday = d === todayStr;
-
-              return (
-                <div 
-                  key={d} 
-                  title={isToday ? "오늘 날짜 🎯" : d}
-                  onClick={() => handleSquareClick(d)} 
-                  className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
-                />
-              );
-            })}
+        <div className="calendar-section">
+          <div className="view-toggle-wrapper">
+            <button 
+              className={`view-toggle-btn ${myCalendarView === 'month' ? 'active' : ''}`} 
+              onClick={() => setMyCalendarView('month')}
+            >
+              한 달 보기
+            </button>
+            <button 
+              className={`view-toggle-btn ${myCalendarView === 'year' ? 'active' : ''}`} 
+              onClick={() => setMyCalendarView('year')}
+            >
+              1년 전체 보기
+            </button>
           </div>
+
+          {myCalendarView === 'month' ? (
+            <>
+              <p className="calendar-guide">🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
+              <div className="calendar-grid">
+                {weekdays.map(d => {
+                  const count = getSolvedCount(currentStudent.id, d);
+                  const isDone = count >= 3;
+                  const isToday = d === todayStr;
+
+                  return (
+                    <div 
+                      key={d} 
+                      title={isToday ? "오늘 날짜 🎯" : d}
+                      onClick={() => handleSquareClick(d)} 
+                      className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="yearly-grid">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
+                const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
+                return (
+                  <div key={month} className="yearly-month-card">
+                    <h4 className="yearly-month-title">{month}월</h4>
+                    <div className="small-calendar-grid">
+                      {monthWeekdays.map(d => {
+                        const count = getSolvedCount(currentStudent.id, d);
+                        const isDone = count >= 3;
+                        const isToday = d === todayStr;
+
+                        return (
+                          <div 
+                            key={d} 
+                            title={d}
+                            onClick={() => handleSquareClick(d)}
+                            className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
+                            style={{ cursor: isToday ? 'pointer' : 'default' }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* 탭 2: 전체 보기 */}
+      {/* 💡 탭 2: 우리반 다이어리 수정 부분 (가나다 정렬 및 컴팩트 구조화) */}
       {activeTab === 'all' && (
         <div className="all-board-list">
-          {students.map(s => {
-            const isMe = s.id === currentStudent.id;
-            return (
-              <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
-                <div className="student-card-header">
-                  <span className="student-card-name">
-                    🎀 {s.name} {isMe && <span className="me-badge">나</span>}
-                  </span>
-                  <span className="student-card-score">✨ {getSuccessDaysCount(s.id)}회</span>
-                </div>
-                
-                <div className="small-calendar-grid">
-                  {weekdays.map(d => {
-                    const count = getSolvedCount(s.id, d);
-                    const isDone = count >= 3;
-                    const isToday = d === todayStr;
+          {[...students]
+            .sort((a, b) => a.name.localeCompare(b.name, 'ko')) // 👈 가나다(ㄱㄴㄷ) 순 정렬 추가
+            .map(s => {
+              const isMe = s.id === currentStudent.id;
+              return (
+                <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
+                  <div className="student-card-header">
+                    <span className="student-card-name" title={s.name}>
+                      🎀 {s.name} {isMe && <span className="me-badge">나</span>}
+                    </span>
+                    <span className="student-card-score">✨ {getSuccessDaysCount(s.id)}회</span>
+                  </div>
+                  
+                  <div className="small-calendar-grid">
+                    {weekdays.map(d => {
+                      const count = getSolvedCount(s.id, d);
+                      const isDone = count >= 3;
+                      const isToday = d === todayStr;
 
-                    return (
-                      <div 
-                        key={d} 
-                        title={`${s.name}: ${d}`}
-                        className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
-                      />
-                    );
-                  })}
+                      return (
+                        <div 
+                          key={d} 
+                          title={`${s.name}: ${d}`}
+                          className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       )}
     </div>
