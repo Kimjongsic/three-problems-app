@@ -5,6 +5,9 @@ import './App.css';
 // 페들릿 주소를 넣어주세요.
 const PADLET_URL = "https://padlet.com"; 
 
+// 💡 프로필에서 고를 수 있는 감성 이모지 목록
+const EMOJI_LIST = ['🤍', '❤️', '🐰', '🍀', '🍒', '🐥', '🧸', '🎀', '🎧', '🌙'];
+
 interface Student {
   id: number;
   name: string;
@@ -23,6 +26,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
+  // 💡 유저별 커스텀 이모지 상태
+  const [userEmoji, setUserEmoji] = useState('🤍'); 
+  
   const [isRegisterMode, setIsRegisterMode] = useState(false); 
   const [loginPin, setLoginPin] = useState(''); 
   const [registerName, setRegisterName] = useState('');
@@ -107,9 +113,16 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear]);
 
+  // 로컬스토리지에서 유저와 커스텀 이모지 불러오기
   useEffect(() => {
     const savedUser = localStorage.getItem('routine_user');
-    if (savedUser) setCurrentStudent(JSON.parse(savedUser));
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser);
+      setCurrentStudent(parsedUser);
+      
+      const savedEmoji = localStorage.getItem(`emoji_${parsedUser.id}`);
+      if (savedEmoji) setUserEmoji(savedEmoji);
+    }
   }, []);
 
   const handlePrevMonth = () => {
@@ -130,6 +143,15 @@ export default function App() {
     }
   };
 
+  // 💡 이모지 클릭 시 다음 이모지로 변경 및 저장
+  const handleEmojiClick = () => {
+    if (!currentStudent) return;
+    const nextIndex = (EMOJI_LIST.indexOf(userEmoji) + 1) % EMOJI_LIST.length;
+    const newEmoji = EMOJI_LIST[nextIndex];
+    setUserEmoji(newEmoji);
+    localStorage.setItem(`emoji_${currentStudent.id}`, newEmoji);
+  };
+
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginPin.trim()) return;
@@ -142,6 +164,10 @@ export default function App() {
       setMyCalendarView('month');
       setLoginPin('');
       localStorage.setItem('routine_user', JSON.stringify(student));
+      
+      // 로그인 시 저장된 이모지도 불러오기
+      const savedEmoji = localStorage.getItem(`emoji_${student.id}`);
+      setUserEmoji(savedEmoji || '🤍');
     } else {
       alert('비밀번호가 맞지 않아요. 다시 한 번 확인해 주세요! 🥲');
     }
@@ -174,7 +200,7 @@ export default function App() {
       .select();
 
     if (!error && data && data.length > 0) {
-      alert('다이어리 등록 완료! 이제 내가 설정한 비밀번호로 로그인해 보세요 🤍');
+      alert('등록이 완료되었습니다. 설정한 비밀번호로 로그인해 주세요 🤍');
       setRegisterName('');
       setRegisterPin('');
       setIsRegisterMode(false);
@@ -188,7 +214,7 @@ export default function App() {
     if (!currentStudent) return;
 
     if (dateStr !== todayStr) {
-      alert('오늘 날짜의 루틴만 예쁘게 채울 수 있어요! ✍️');
+      alert('오늘 날짜의 챌린지만 기록할 수 있어요! ✍️');
       return;
     }
 
@@ -250,36 +276,38 @@ export default function App() {
   };
 
   if (loading && students.length === 0) {
-    return <div className="loading-screen">예쁜 다이어리를 불러오는 중... 🤍</div>;
+    return <div className="loading-screen">데이터를 불러오는 중입니다...</div>;
   }
 
+  // 로그인 화면
   if (!currentStudent) {
     return (
       <div className="auth-container">
         <div className="auth-header">
-          <div className="auth-emoji">📚</div>
-          <h1 className="auth-title">Study Tracker</h1>
-          <p className="auth-subtitle">매일 조금씩 성장하는 우리들의 기록 🍀</p>
+          <div className="auth-emoji">📖</div>
+          <h1 className="auth-title">Daily Challenge</h1>
+          <p className="auth-subtitle">하루 3문제, 꾸준함의 힘을 기록하세요.</p>
         </div>
         
         <div className="auth-card">
           {!isRegisterMode ? (
             <form onSubmit={handleLoginSubmit}>
-              <h3 className="auth-form-title">내 플래너 열기</h3>
+              <h3 className="auth-form-title">로그인</h3>
+              {/* 💡 "비밀번호(4자리)" 로 수정 */}
               <input 
                 type="password" 
                 inputMode="numeric"
                 maxLength={4}
-                placeholder="내 PIN 번호 (4자리)" 
+                placeholder="비밀번호(4자리)" 
                 value={loginPin}
                 onChange={e => setLoginPin(e.target.value)}
                 className="auth-input pin"
               />
               <button type="submit" className="auth-button">
-                입장하기 🤍
+                로그인하기
               </button>
               <p className="auth-switch-text">
-                아직 플래너가 없나요?{' '}
+                처음 방문하셨나요?{' '}
                 <span onClick={() => setIsRegisterMode(true)} className="auth-switch-link">
                   새로운 기록 시작하기
                 </span>
@@ -287,10 +315,11 @@ export default function App() {
             </form>
           ) : (
             <form onSubmit={handleRegisterSubmit}>
-              <h3 className="auth-form-title">나만의 플래너 만들기</h3>
+              <h3 className="auth-form-title">신규 학생 등록</h3>
+              {/* 💡 "이름", "비밀번호(숫자 4자리)" 로 수정 */}
               <input 
                 type="text" 
-                placeholder="이름을 예쁘게 적어주세요" 
+                placeholder="이름" 
                 value={registerName}
                 onChange={e => setRegisterName(e.target.value)}
                 className="auth-input"
@@ -299,18 +328,18 @@ export default function App() {
                 type="password" 
                 inputMode="numeric"
                 maxLength={4}
-                placeholder="나만의 PIN 번호 (숫자 4자리)" 
+                placeholder="비밀번호(숫자 4자리)" 
                 value={registerPin}
                 onChange={e => setRegisterPin(e.target.value)}
                 className="auth-input pin"
               />
               <button type="submit" className="auth-button" style={{ backgroundColor: '#f472b6' }}>
-                만들기 완료 ✨
+                등록 완료
               </button>
               <p className="auth-switch-text">
-                이미 만들었나요?{' '}
+                이미 등록하셨나요?{' '}
                 <span onClick={() => setIsRegisterMode(false)} className="auth-switch-link">
-                  로그인하러 가기
+                  로그인하기
                 </span>
               </p>
             </form>
@@ -320,12 +349,19 @@ export default function App() {
     );
   }
 
+  // 메인 챌린지 화면
   return (
     <div className="dashboard-container">
       
       <div className="dashboard-header">
         <div className="header-top">
-          <h2 className="student-name">🎧 {currentStudent.name} 님</h2>
+          <h2 className="student-name">
+            {/* 💡 클릭 시 이모지가 변하는 기능 추가 */}
+            <span className="profile-emoji" onClick={handleEmojiClick} title="클릭해서 이모지를 바꿔보세요!">
+              {userEmoji}
+            </span> 
+            {currentStudent.name}
+          </h2>
           <button onClick={handleLogout} className="logout-button">로그아웃</button>
         </div>
 
@@ -334,7 +370,8 @@ export default function App() {
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
             <span className="month-subtitle">
-              이번 달 채운 날 <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}일</span>
+              {/* 💡 "🔥 챌린지 성공" 으로 수정 */}
+              🔥 챌린지 성공 <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}일</span>
             </span>
           </div>
           <button onClick={handleNextMonth} className="month-btn" aria-label="다음 달">▶</button>
@@ -346,13 +383,15 @@ export default function App() {
           onClick={() => setActiveTab('my')} 
           className={`tab-button ${activeTab === 'my' ? 'active' : ''}`}
         >
-          마이 캘린더
+          {/* 💡 "마이 챌린지" 로 수정 */}
+          마이 챌린지
         </button>
         <button 
           onClick={() => setActiveTab('all')} 
           className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
         >
-          우리 반 스터디 로그 🎧
+          {/* 💡 "수다방 챌린지" 로 수정 */}
+          수다방 챌린지
         </button>
       </div>
 
@@ -375,7 +414,7 @@ export default function App() {
 
           {myCalendarView === 'month' ? (
             <>
-              <p className="calendar-guide">오늘 칸을 꾹 눌러서 나의 하루를 예쁘게 색칠해 보세요 🎨</p>
+              <p className="calendar-guide">오늘 칸을 눌러서 달성을 기록하세요.</p>
               
               <div className="padlet-btn-wrapper">
                 <a 
@@ -384,7 +423,8 @@ export default function App() {
                   rel="noopener noreferrer" 
                   className="padlet-link-btn"
                 >
-                  📸 오늘의 미션 인증하러 가기
+                  {/* 💡 "오늘의 챌린지하러 가기" 로 수정 */}
+                  📸 오늘의 챌린지하러 가기
                 </a>
               </div>
 
@@ -402,7 +442,7 @@ export default function App() {
                   return (
                     <div 
                       key={d} 
-                      title={isToday ? "오늘 날짜 🎯" : d}
+                      title={isToday ? "오늘 날짜" : d}
                       onClick={() => handleSquareClick(d)} 
                       className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
                     >
@@ -415,7 +455,7 @@ export default function App() {
           ) : (
             <div className="yearly-view-container">
               <div className="yearly-total-score">
-                ✨ {currentYear}년 나의 성장 기록: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}일</span>
+                🔥 {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}일</span>
               </div>
               <div className="yearly-grid">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
@@ -472,7 +512,7 @@ export default function App() {
                 <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
                   <div className="student-card-header">
                     <span className="student-card-name" title={s.name}>
-                      {s.name} {isMe && <span className="me-badge">Me</span>}
+                      {s.name} {isMe && <span className="me-badge">나</span>}
                     </span>
                     <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
                   </div>

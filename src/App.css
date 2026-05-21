@@ -4,7 +4,7 @@
 body {
   margin: 0;
   font-family: 'Noto Sans KR', sans-serif;
-  background-color: #faf5ff; /* 화사하고 아주 연한 보라색 배경 */
+  background-color: #faf5ff;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -49,9 +49,10 @@ body {
 .auth-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #5b21b6; /* 딥 라벤더 */
+  color: #5b21b6;
   letter-spacing: -0.5px;
-  margin: 12px 0 0 0;
+  /* 💡 수정됨: 이모지와 제목 사이 간격 넓힘 */
+  margin: 24px 0 0 0; 
 }
 
 .auth-subtitle {
@@ -76,6 +77,7 @@ body {
   text-align: center;
 }
 
+/* 💡 수정됨: 모든 입력창의 폰트 사이즈와 굵기를 통일 */
 .auth-input {
   width: 100%;
   padding: 16px;
@@ -83,6 +85,7 @@ body {
   border-radius: 14px;
   background-color: #faf5ff;
   font-size: 16px;
+  font-weight: 600; /* 이름, 핀 번호 모두 같은 굵기 */
   outline: none;
   box-sizing: border-box;
   margin-bottom: 14px;
@@ -90,11 +93,14 @@ body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
+.auth-input::placeholder {
+  font-weight: 500;
+  color: #c4b5fd;
+}
+
 .auth-input.pin {
   letter-spacing: 8px;
   text-align: center;
-  font-size: 18px;
-  font-weight: 800;
 }
 
 .auth-input:focus {
@@ -106,7 +112,7 @@ body {
 .auth-button {
   width: 100%;
   padding: 16px;
-  background-color: #a78bfa; /* 소프트 라벤더 메인 컬러 */
+  background-color: #a78bfa;
   border: none;
   border-radius: 14px;
   font-size: 1.05rem;
@@ -171,6 +177,21 @@ body {
   font-size: 1.3rem;
   font-weight: 800;
   color: #5b21b6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 💡 추가됨: 누를 수 있는 프로필 이모지 */
+.profile-emoji {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.profile-emoji:active {
+  transform: scale(0.7);
 }
 
 .logout-button {
@@ -229,7 +250,7 @@ body {
 }
 
 .highlight-count {
-  color: #f472b6; /* 하이라이트는 파스텔 핑크 */
+  color: #f472b6;
   font-weight: 800;
 }
 
@@ -264,7 +285,7 @@ body {
 }
 
 /* -------------------------------------
-   내 캘린더 (My Board)
+   마이 챌린지 (My Board)
 -------------------------------------- */
 .calendar-guide {
   font-size: 0.85rem;
@@ -288,7 +309,7 @@ body {
   width: 100%;
   max-width: 280px;
   padding: 14px;
-  background-color: #f472b6; /* 감성 핑크 버튼 */
+  background-color: #f472b6;
   color: white;
   font-size: 0.95rem;
   font-weight: 800;
@@ -315,7 +336,7 @@ body {
   max-width: 64px; 
   aspect-ratio: 1 / 1;
   height: auto;
-  border-radius: 14px; /* 플래너 스티커처럼 귀여운 스퀘어 */
+  border-radius: 14px; 
   background-color: #ffffff;
   border: 1.5px solid #f3e8ff;
   transition: all 0.2s ease;
@@ -326,7 +347,7 @@ body {
   align-items: center;
   font-size: 1rem;
   font-weight: 700;
-  color: #d8b4fe; /* 미달성 숫자 연하게 */
+  color: #d8b4fe; 
   user-select: none;
 }
 
@@ -338,7 +359,7 @@ body {
 }
 
 .day-block.today {
-  border: 2px solid #f472b6; /* 오늘 날짜는 핑크 테두리 */
+  border: 2px solid #f472b6; 
   cursor: pointer;
 }
 
@@ -352,7 +373,7 @@ body {
 }
 
 /* -------------------------------------
-   우리 반 현황 (All Board) 
+   수다방 챌린지 (All Board) 
 -------------------------------------- */
 .all-board-list {
   display: grid;
@@ -372,7 +393,7 @@ body {
 }
 
 .student-card.me {
-  background-color: #faf5ff; /* 내 카드 배경 라벤더 */
+  background-color: #faf5ff; 
   border: 1.5px solid #d8b4fe;
 }
 
