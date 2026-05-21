@@ -39,6 +39,7 @@ export default function App() {
   };
   const todayStr = getTodayStr();
 
+  // 평일(월~금) 날짜만 배열로 반환
   const getWeekdaysOfMonth = (year: number, month: number): string[] => {
     const weekdays: string[] = [];
     const date = new Date(year, month - 1, 1);
@@ -50,6 +51,16 @@ export default function App() {
       date.setDate(date.getDate() + 1);
     }
     return weekdays;
+  };
+
+  // 💡 요일에 맞게 밀어주기 위한 앞쪽 빈칸(Empty Block) 갯수 계산 함수
+  const getEmptyBlocksCount = (year: number, month: number): number => {
+    const firstDay = new Date(year, month - 1, 1).getDay(); // 0:일, 1:월, 2:화 ... 6:토
+    // 만약 1일이 주말(토, 일)이라면, 첫 평일은 월요일부터 시작하므로 빈칸은 0개입니다.
+    if (firstDay === 0 || firstDay === 6) return 0;
+    // 평일이라면 해당 요일 인덱스에서 1(월요일)을 빼주면 빈칸 갯수가 나옵니다.
+    // 예) 수요일(3) - 1 = 2칸 빈칸 (월, 화)
+    return firstDay - 1;
   };
 
   const weekdays = getWeekdaysOfMonth(currentYear, currentMonth);
@@ -79,28 +90,23 @@ export default function App() {
     fetchData(isInitialLoad);
   }, [currentYear]); 
 
-  // 👇 여기부터 아래의 코드를 복사해서 추가해 주세요! 👇
+  // 실시간 동기화 (Payload 에러 수정 완료 버전)
   useEffect(() => {
-    // 💡 Supabase 실시간(Realtime) 구독 설정
-    // challenge_logs 테이블에 변경 사항(Insert, Update)이 생기면 즉시 감지합니다.
     const subscription = supabase
       .channel('challenge_logs_changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'challenge_logs' },
         () => {
-          // 변경이 감지되면 화면 깜빡임 없이 백그라운드에서 데이터를 최신화합니다.
           fetchData(false);
         }
       )
       .subscribe();
 
-    // 앱(컴포넌트)이 종료될 때 구독을 안전하게 해제합니다.
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [currentYear]); 
-  // 👆 여기까지 추가해 주세요! 👆
+  }, [currentYear]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('routine_user');
@@ -240,6 +246,7 @@ export default function App() {
     return <div className="loading-screen">💖 소중한 루틴 찾아오는 중...</div>;
   }
 
+  // [1] 로그인 / 회원가입 화면
   if (!currentStudent) {
     return (
       <div className="auth-container">
@@ -307,6 +314,7 @@ export default function App() {
     );
   }
 
+  // [2] 로그인 후 메인 대시보드 화면
   return (
     <div className="dashboard-container">
       
@@ -363,7 +371,16 @@ export default function App() {
           {myCalendarView === 'month' ? (
             <>
               <p className="calendar-guide">🎀 오늘 날짜의 마카롱을 누르면 불이 켜져요! 🎀</p>
+              
+              <div className="calendar-weekdays">
+                <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span>
+              </div>
               <div className="calendar-grid">
+                {/* 💡 계산된 갯수만큼 첫 주 빈칸 삽입 */}
+                {Array.from({ length: getEmptyBlocksCount(currentYear, currentMonth) }).map((_, idx) => (
+                  <div key={`empty-${idx}`} className="empty-block" />
+                ))}
+                
                 {weekdays.map(d => {
                   const count = getSolvedCount(currentStudent.id, d);
                   const isDone = count >= 3;
@@ -384,10 +401,15 @@ export default function App() {
             <div className="yearly-grid">
               {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
                 const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
+                const emptyCount = getEmptyBlocksCount(currentYear, month);
                 return (
                   <div key={month} className="yearly-month-card">
                     <h4 className="yearly-month-title">{month}월</h4>
                     <div className="small-calendar-grid">
+                      {/* 미니 달력도 1일에 맞춰 빈칸 채우기 */}
+                      {Array.from({ length: emptyCount }).map((_, idx) => (
+                        <div key={`empty-yr-${month}-${idx}`} className="small-empty-block" />
+                      ))}
                       {monthWeekdays.map(d => {
                         const count = getSolvedCount(currentStudent.id, d);
                         const isDone = count >= 3;
@@ -412,13 +434,13 @@ export default function App() {
         </div>
       )}
 
-      {/* 💡 탭 2: 우리반 다이어리 수정 부분 (가나다 정렬 및 컴팩트 구조화) */}
       {activeTab === 'all' && (
         <div className="all-board-list">
           {[...students]
-            .sort((a, b) => a.name.localeCompare(b.name, 'ko')) // 👈 가나다(ㄱㄴㄷ) 순 정렬 추가
+            .sort((a, b) => a.name.localeCompare(b.name, 'ko')) 
             .map(s => {
               const isMe = s.id === currentStudent.id;
+              const emptyCount = getEmptyBlocksCount(currentYear, currentMonth);
               return (
                 <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
                   <div className="student-card-header">
@@ -429,6 +451,10 @@ export default function App() {
                   </div>
                   
                   <div className="small-calendar-grid">
+                    {/* 우리반 다이어리도 시작 빈칸 적용 */}
+                    {Array.from({ length: emptyCount }).map((_, idx) => (
+                      <div key={`empty-all-${s.id}-${idx}`} className="small-empty-block" />
+                    ))}
                     {weekdays.map(d => {
                       const count = getSolvedCount(s.id, d);
                       const isDone = count >= 3;

@@ -254,26 +254,36 @@ body {
 }
 
 /* -------------------------------------
-   내 캘린더 (My Board) - 반응형 그리드
+   내 캘린더 (My Board) - 💡 5열 평일 달력 복원
 -------------------------------------- */
 .calendar-guide {
   font-size: 0.9rem;
   color: #ff94b4;
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   font-weight: 600;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 월~금 5열 */
+  justify-items: center;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffb3c6;
 }
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, 1fr); /* 5열 배치 유지 */
   gap: min(3vw, 14px); 
   justify-items: center;
 }
 
 .day-block {
   width: 100%;
-  max-width: 64px;
+  max-width: 64px; 
   aspect-ratio: 1 / 1;
   height: auto;
   border-radius: 25%;
@@ -300,13 +310,17 @@ body {
   transform: scale(0.95);
 }
 
+.empty-block {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
 /* -------------------------------------
-   우리반 다이어리 (All Board) - 💡 컴팩트 그리드로 변경됨
+   우리반 다이어리 (All Board) 
 -------------------------------------- */
 .all-board-list {
   display: grid;
-  /* 한 줄에 최소 125px 크기로 자동 채움 -> 스마트폰 화면 기준 대략 2~3명이 나란히 정렬됩니다. */
-  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
   gap: 12px;
 }
 
@@ -314,7 +328,7 @@ body {
   background-color: white;
   border: 1px solid #f9ebed;
   border-radius: 16px;
-  padding: 10px; /* 오밀조밀하게 패딩 축소 */
+  padding: 10px;
   box-shadow: 0 4px 12px rgba(255, 182, 198, 0.05);
   display: flex;
   flex-direction: column;
@@ -337,7 +351,7 @@ body {
 .student-card-name {
   font-weight: 800;
   color: #555;
-  font-size: 0.8rem; /* 작은 카드에 맞춘 글씨체 크기 */
+  font-size: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -369,8 +383,8 @@ body {
 
 .small-calendar-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px; /* 마카롱 간격을 촘촘하게 */
+  grid-template-columns: repeat(5, 1fr); /* 5열 유지 */
+  gap: 4px;
 }
 
 .small-day-block {
@@ -390,6 +404,11 @@ body {
 
 .small-day-block.today {
   border: 1.5px solid #ff4d7d;
+}
+
+.small-empty-block {
+  width: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 /* -------------------------------------
@@ -427,7 +446,7 @@ body {
 .yearly-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
   margin-top: 10px;
 }
 
@@ -435,13 +454,13 @@ body {
   background-color: white;
   border: 1px solid #f9ebed;
   border-radius: 16px;
-  padding: 14px;
+  padding: 10px;
   box-shadow: 0 4px 12px rgba(255, 182, 198, 0.05);
 }
 
 .yearly-month-title {
-  margin: 0 0 12px 0;
-  font-size: 0.95rem;
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
   color: #ff7aa2;
   text-align: center;
   font-weight: 800;
