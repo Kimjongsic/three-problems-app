@@ -3,9 +3,8 @@ import { supabase } from './supabaseClient';
 import './App.css'; 
 
 // 페들릿 주소를 넣어주세요.
-const PADLET_URL = "https://padlet.com"; 
+const PADLET_URL = "https://padlet.com/whdtlr8279_2/3-16pkfrpo9muwf4px"; 
 
-// 💡 프로필에서 고를 수 있는 감성 이모지 목록
 const EMOJI_LIST = ['🤍', '❤️', '🐰', '🍀', '🍒', '🐥', '🧸', '🎀', '🎧', '🌙'];
 
 interface Student {
@@ -26,8 +25,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
-  // 💡 유저별 커스텀 이모지 상태
   const [userEmoji, setUserEmoji] = useState('🤍'); 
+  // 💡 추가됨: 이모지 선택창 열림/닫힘 상태
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   
   const [isRegisterMode, setIsRegisterMode] = useState(false); 
   const [loginPin, setLoginPin] = useState(''); 
@@ -113,13 +113,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear]);
 
-  // 로컬스토리지에서 유저와 커스텀 이모지 불러오기
   useEffect(() => {
     const savedUser = localStorage.getItem('routine_user');
     if (savedUser) {
       const parsedUser = JSON.parse(savedUser);
       setCurrentStudent(parsedUser);
-      
       const savedEmoji = localStorage.getItem(`emoji_${parsedUser.id}`);
       if (savedEmoji) setUserEmoji(savedEmoji);
     }
@@ -143,13 +141,17 @@ export default function App() {
     }
   };
 
-  // 💡 이모지 클릭 시 다음 이모지로 변경 및 저장
-  const handleEmojiClick = () => {
+  // 💡 이모지 선택창 토글 함수
+  const toggleEmojiPicker = () => {
+    setIsEmojiPickerOpen(!isEmojiPickerOpen);
+  };
+
+  // 💡 목록에서 이모지를 선택했을 때 실행되는 함수
+  const selectEmoji = (emoji: string) => {
     if (!currentStudent) return;
-    const nextIndex = (EMOJI_LIST.indexOf(userEmoji) + 1) % EMOJI_LIST.length;
-    const newEmoji = EMOJI_LIST[nextIndex];
-    setUserEmoji(newEmoji);
-    localStorage.setItem(`emoji_${currentStudent.id}`, newEmoji);
+    setUserEmoji(emoji);
+    localStorage.setItem(`emoji_${currentStudent.id}`, emoji);
+    setIsEmojiPickerOpen(false); // 선택 후 창 닫기
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -165,7 +167,6 @@ export default function App() {
       setLoginPin('');
       localStorage.setItem('routine_user', JSON.stringify(student));
       
-      // 로그인 시 저장된 이모지도 불러오기
       const savedEmoji = localStorage.getItem(`emoji_${student.id}`);
       setUserEmoji(savedEmoji || '🤍');
     } else {
@@ -279,7 +280,6 @@ export default function App() {
     return <div className="loading-screen">데이터를 불러오는 중입니다...</div>;
   }
 
-  // 로그인 화면
   if (!currentStudent) {
     return (
       <div className="auth-container">
@@ -293,7 +293,6 @@ export default function App() {
           {!isRegisterMode ? (
             <form onSubmit={handleLoginSubmit}>
               <h3 className="auth-form-title">로그인</h3>
-              {/* 💡 "비밀번호(4자리)" 로 수정 */}
               <input 
                 type="password" 
                 inputMode="numeric"
@@ -316,7 +315,6 @@ export default function App() {
           ) : (
             <form onSubmit={handleRegisterSubmit}>
               <h3 className="auth-form-title">신규 학생 등록</h3>
-              {/* 💡 "이름", "비밀번호(숫자 4자리)" 로 수정 */}
               <input 
                 type="text" 
                 placeholder="이름" 
@@ -349,18 +347,32 @@ export default function App() {
     );
   }
 
-  // 메인 챌린지 화면
   return (
     <div className="dashboard-container">
       
       <div className="dashboard-header">
         <div className="header-top">
           <h2 className="student-name">
-            {/* 💡 클릭 시 이모지가 변하는 기능 추가 */}
-            <span className="profile-emoji" onClick={handleEmojiClick} title="클릭해서 이모지를 바꿔보세요!">
-              {userEmoji}
-            </span> 
-            {currentStudent.name}
+            {/* 💡 이모지 선택 팝업 컨테이너 */}
+            <div className="profile-emoji-container">
+              <span className="profile-emoji" onClick={toggleEmojiPicker} title="나만의 이모지를 골라보세요!">
+                {userEmoji}
+              </span>
+              {isEmojiPickerOpen && (
+                <div className="emoji-picker">
+                  {EMOJI_LIST.map(emoji => (
+                    <span 
+                      key={emoji} 
+                      className="picker-emoji" 
+                      onClick={() => selectEmoji(emoji)}
+                    >
+                      {emoji}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            {currentStudent.name} 님
           </h2>
           <button onClick={handleLogout} className="logout-button">로그아웃</button>
         </div>
@@ -370,7 +382,6 @@ export default function App() {
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
             <span className="month-subtitle">
-              {/* 💡 "🔥 챌린지 성공" 으로 수정 */}
               🔥 챌린지 성공 <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}일</span>
             </span>
           </div>
@@ -383,14 +394,12 @@ export default function App() {
           onClick={() => setActiveTab('my')} 
           className={`tab-button ${activeTab === 'my' ? 'active' : ''}`}
         >
-          {/* 💡 "마이 챌린지" 로 수정 */}
           마이 챌린지
         </button>
         <button 
           onClick={() => setActiveTab('all')} 
           className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
         >
-          {/* 💡 "수다방 챌린지" 로 수정 */}
           수다방 챌린지
         </button>
       </div>
@@ -423,7 +432,6 @@ export default function App() {
                   rel="noopener noreferrer" 
                   className="padlet-link-btn"
                 >
-                  {/* 💡 "오늘의 챌린지하러 가기" 로 수정 */}
                   📸 오늘의 챌린지하러 가기
                 </a>
               </div>
@@ -442,7 +450,7 @@ export default function App() {
                   return (
                     <div 
                       key={d} 
-                      title={isToday ? "오늘 날짜" : d}
+                      title={isToday ? "오늘 날짜 🎯" : d}
                       onClick={() => handleSquareClick(d)} 
                       className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
                     >
@@ -455,7 +463,7 @@ export default function App() {
           ) : (
             <div className="yearly-view-container">
               <div className="yearly-total-score">
-                🔥 {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}일</span>
+                ✨ {currentYear}년 나의 성장 기록: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}일</span>
               </div>
               <div className="yearly-grid">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
@@ -512,7 +520,7 @@ export default function App() {
                 <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
                   <div className="student-card-header">
                     <span className="student-card-name" title={s.name}>
-                      {s.name} {isMe && <span className="me-badge">나</span>}
+                      {s.name} {isMe && <span className="me-badge">Me</span>}
                     </span>
                     <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
                   </div>

@@ -51,7 +51,6 @@ body {
   font-weight: 800;
   color: #5b21b6;
   letter-spacing: -0.5px;
-  /* 💡 수정됨: 이모지와 제목 사이 간격 넓힘 */
   margin: 24px 0 0 0; 
 }
 
@@ -77,7 +76,6 @@ body {
   text-align: center;
 }
 
-/* 💡 수정됨: 모든 입력창의 폰트 사이즈와 굵기를 통일 */
 .auth-input {
   width: 100%;
   padding: 16px;
@@ -85,7 +83,7 @@ body {
   border-radius: 14px;
   background-color: #faf5ff;
   font-size: 16px;
-  font-weight: 600; /* 이름, 핀 번호 모두 같은 굵기 */
+  font-weight: 600;
   outline: none;
   box-sizing: border-box;
   margin-bottom: 14px;
@@ -182,16 +180,71 @@ body {
   gap: 6px;
 }
 
-/* 💡 추가됨: 누를 수 있는 프로필 이모지 */
+/* 💡 프로필 이모지 및 선택창 영역 */
+.profile-emoji-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .profile-emoji {
   cursor: pointer;
   user-select: none;
-  transition: transform 0.2s;
-  display: inline-block;
+  transition: transform 0.2s, background-color 0.2s;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.profile-emoji:hover {
+  background-color: #f3e8ff;
 }
 
 .profile-emoji:active {
-  transform: scale(0.7);
+  transform: scale(0.85);
+}
+
+.emoji-picker {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background-color: #ffffff;
+  border: 1.5px solid #e9d5ff;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 10px 25px rgba(167, 139, 250, 0.2);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  z-index: 100;
+  animation: popIn 0.2s ease-out;
+}
+
+/* 선택창이 뿅! 하고 나타나는 애니메이션 */
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.picker-emoji {
+  cursor: pointer;
+  font-size: 1.2rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.picker-emoji:hover {
+  background-color: #faf5ff;
+  transform: scale(1.15);
 }
 
 .logout-button {
