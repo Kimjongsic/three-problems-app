@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css'; 
 
-// 페들릿 주소를 넣어주세요.
-const PADLET_URL = "https://padlet.com/whdtlr8279_2/3-16pkfrpo9muwf4px"; 
+// 💡 1. 페들릿 주소를 넣어주세요.
+const PADLET_URL = "https://padlet.com"; 
+
+// 💡 2. 관리자(선생님) 전용 비밀번호를 여기서 수정하세요!
+const ADMIN_PASSWORD = "0000"; 
 
 const EMOJI_LIST = ['🤍', '❤️', '🐰', '🍀', '🍒', '🐥', '🧸', '🎀', '🎧', '🌙'];
 
@@ -24,15 +27,19 @@ export default function App() {
   const [logs, setLogs] = useState<ChallengeLog[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
-  const [userEmoji, setUserEmoji] = useState('🤍'); 
-  // 💡 추가됨: 이모지 선택창 열림/닫힘 상태
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
-  
-  const [isRegisterMode, setIsRegisterMode] = useState(false); 
+  // 로그인/가입/관리자 모드 상태 관리
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'admin'>('login');
   const [loginPin, setLoginPin] = useState(''); 
   const [registerName, setRegisterName] = useState('');
   const [registerPin, setRegisterPin] = useState(''); 
+  
+  // 학생 & 관리자 상태
+  const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminSelectedStudentId, setAdminSelectedStudentId] = useState<number | null>(null);
+  
+  const [userEmoji, setUserEmoji] = useState('🤍'); 
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
   const [myCalendarView, setMyCalendarView] = useState<'month' | 'year'>('month');
@@ -95,6 +102,13 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear]); 
 
+  // 관리자가 로그인했을 때 학생 리스트가 로딩되면 첫 번째 학생을 기본 선택
+  useEffect(() => {
+    if (isAdmin && students.length > 0 && !adminSelectedStudentId) {
+      setAdminSelectedStudentId(students[0].id);
+    }
+  }, [isAdmin, students, adminSelectedStudentId]);
+
   useEffect(() => {
     const subscription = supabase
       .channel('challenge_logs_changes')
@@ -121,6 +135,11 @@ export default function App() {
       const savedEmoji = localStorage.getItem(`emoji_${parsedUser.id}`);
       if (savedEmoji) setUserEmoji(savedEmoji);
     }
+
+    const savedAdmin = localStorage.getItem('routine_admin');
+    if (savedAdmin === 'true') {
+      setIsAdmin(true);
+    }
   }, []);
 
   const handlePrevMonth = () => {
@@ -141,23 +160,34 @@ export default function App() {
     }
   };
 
-  // 💡 이모지 선택창 토글 함수
   const toggleEmojiPicker = () => {
     setIsEmojiPickerOpen(!isEmojiPickerOpen);
   };
 
-  // 💡 목록에서 이모지를 선택했을 때 실행되는 함수
   const selectEmoji = (emoji: string) => {
     if (!currentStudent) return;
     setUserEmoji(emoji);
     localStorage.setItem(`emoji_${currentStudent.id}`, emoji);
-    setIsEmojiPickerOpen(false); // 선택 후 창 닫기
+    setIsEmojiPickerOpen(false); 
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginPin.trim()) return;
 
+    // 💡 관리자 로그인 분기 처리
+    if (authMode === 'admin') {
+      if (loginPin === ADMIN_PASSWORD) {
+        setIsAdmin(true);
+        setLoginPin('');
+        localStorage.setItem('routine_admin', 'true');
+      } else {
+        alert('관리자 비밀번호가 올바르지 않습니다.');
+      }
+      return;
+    }
+
+    // 학생 로그인 처리
     const student = students.find(s => s.password_pin === loginPin.trim());
     
     if (student) {
@@ -204,38 +234,41 @@ export default function App() {
       alert('등록이 완료되었습니다. 설정한 비밀번호로 로그인해 주세요 🤍');
       setRegisterName('');
       setRegisterPin('');
-      setIsRegisterMode(false);
+      setAuthMode('login');
       fetchData(false);
     } else {
       alert('등록 중 작은 오류가 발생했어요. 다시 시도해 주세요.');
     }
   };
 
-  const handleSquareClick = async (dateStr: string) => {
-    if (!currentStudent) return;
+  // 💡 관리자는 대상을 넘겨받아 권한 제약 없이 캘린더 수정 가능
+  const handleSquareClick = async (dateStr: string, targetStudentId?: number) => {
+    const studentIdToUpdate = isAdmin ? targetStudentId : currentStudent?.id;
+    if (!studentIdToUpdate) return;
 
-    if (dateStr !== todayStr) {
+    // 관리자가 아니면 오늘 날짜만 클릭 가능하도록 제한
+    if (!isAdmin && dateStr !== todayStr) {
       alert('오늘 날짜의 챌린지만 기록할 수 있어요! ✍️');
       return;
     }
 
-    const currentCount = getSolvedCount(currentStudent.id, dateStr);
+    const currentCount = getSolvedCount(studentIdToUpdate, dateStr);
     const nextCount = currentCount >= 3 ? 0 : 3;
 
     const updatedLogs = [...logs];
-    const logIndex = updatedLogs.findIndex(l => l.student_id === currentStudent.id && l.log_date === dateStr);
+    const logIndex = updatedLogs.findIndex(l => l.student_id === studentIdToUpdate && l.log_date === dateStr);
     
     if (logIndex > -1) {
       updatedLogs[logIndex].solved_count = nextCount;
     } else {
-      updatedLogs.push({ student_id: currentStudent.id, log_date: dateStr, solved_count: nextCount });
+      updatedLogs.push({ student_id: studentIdToUpdate, log_date: dateStr, solved_count: nextCount });
     }
     setLogs(updatedLogs);
 
     const { error } = await supabase
       .from('challenge_logs')
       .upsert({
-        student_id: currentStudent.id,
+        student_id: studentIdToUpdate,
         log_date: dateStr,
         solved_count: nextCount
       }, { onConflict: 'student_id, log_date' });
@@ -248,7 +281,10 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentStudent(null);
+    setIsAdmin(false);
+    setAuthMode('login');
     localStorage.removeItem('routine_user');
+    localStorage.removeItem('routine_admin');
   };
 
   const getSolvedCount = (studentId: number, dateStr: string) => {
@@ -280,7 +316,8 @@ export default function App() {
     return <div className="loading-screen">데이터를 불러오는 중입니다...</div>;
   }
 
-  if (!currentStudent) {
+  // 💡 로그인 / 관리자 로그인 / 회원가입 화면 분기
+  if (!currentStudent && !isAdmin) {
     return (
       <div className="auth-container">
         <div className="auth-header">
@@ -290,9 +327,9 @@ export default function App() {
         </div>
         
         <div className="auth-card">
-          {!isRegisterMode ? (
+          {authMode === 'login' && (
             <form onSubmit={handleLoginSubmit}>
-              <h3 className="auth-form-title">로그인</h3>
+              <h3 className="auth-form-title">학생 로그인</h3>
               <input 
                 type="password" 
                 inputMode="numeric"
@@ -302,17 +339,46 @@ export default function App() {
                 onChange={e => setLoginPin(e.target.value)}
                 className="auth-input pin"
               />
-              <button type="submit" className="auth-button">
-                로그인하기
-              </button>
+              <button type="submit" className="auth-button">로그인하기</button>
               <p className="auth-switch-text">
                 처음 방문하셨나요?{' '}
-                <span onClick={() => setIsRegisterMode(true)} className="auth-switch-link">
+                <span onClick={() => setAuthMode('register')} className="auth-switch-link">
                   새로운 기록 시작하기
                 </span>
               </p>
+              <p className="auth-switch-text" style={{ marginTop: '10px' }}>
+                <span onClick={() => setAuthMode('admin')} className="auth-switch-link" style={{ color: '#d8b4fe', fontWeight: '500' }}>
+                  선생님이신가요? (관리자 모드)
+                </span>
+              </p>
             </form>
-          ) : (
+          )}
+
+          {authMode === 'admin' && (
+            <form onSubmit={handleLoginSubmit}>
+              <h3 className="auth-form-title">👩‍🏫 관리자(선생님) 로그인</h3>
+              <input 
+                type="password" 
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="관리자 비밀번호" 
+                value={loginPin}
+                onChange={e => setLoginPin(e.target.value)}
+                className="auth-input pin"
+              />
+              <button type="submit" className="auth-button" style={{ backgroundColor: '#7c3aed' }}>
+                선생님 모드 입장
+              </button>
+              <p className="auth-switch-text">
+                학생이신가요?{' '}
+                <span onClick={() => setAuthMode('login')} className="auth-switch-link">
+                  학생 로그인으로 돌아가기
+                </span>
+              </p>
+            </form>
+          )}
+
+          {authMode === 'register' && (
             <form onSubmit={handleRegisterSubmit}>
               <h3 className="auth-form-title">신규 학생 등록</h3>
               <input 
@@ -336,7 +402,7 @@ export default function App() {
               </button>
               <p className="auth-switch-text">
                 이미 등록하셨나요?{' '}
-                <span onClick={() => setIsRegisterMode(false)} className="auth-switch-link">
+                <span onClick={() => setAuthMode('login')} className="auth-switch-link">
                   로그인하기
                 </span>
               </p>
@@ -347,32 +413,36 @@ export default function App() {
     );
   }
 
+  // 💡 메인 챌린지 화면 (학생 & 관리자 공통)
+  const targetId = isAdmin ? adminSelectedStudentId : currentStudent?.id;
+
   return (
     <div className="dashboard-container">
       
       <div className="dashboard-header">
         <div className="header-top">
           <h2 className="student-name">
-            {/* 💡 이모지 선택 팝업 컨테이너 */}
-            <div className="profile-emoji-container">
-              <span className="profile-emoji" onClick={toggleEmojiPicker} title="나만의 이모지를 골라보세요!">
-                {userEmoji}
-              </span>
-              {isEmojiPickerOpen && (
-                <div className="emoji-picker">
-                  {EMOJI_LIST.map(emoji => (
-                    <span 
-                      key={emoji} 
-                      className="picker-emoji" 
-                      onClick={() => selectEmoji(emoji)}
-                    >
-                      {emoji}
-                    </span>
-                  ))}
+            {isAdmin ? (
+              <>👩‍🏫 선생님 모드</>
+            ) : (
+              <>
+                <div className="profile-emoji-container">
+                  <span className="profile-emoji" onClick={toggleEmojiPicker} title="나만의 이모지를 골라보세요!">
+                    {userEmoji}
+                  </span>
+                  {isEmojiPickerOpen && (
+                    <div className="emoji-picker">
+                      {EMOJI_LIST.map(emoji => (
+                        <span key={emoji} className="picker-emoji" onClick={() => selectEmoji(emoji)}>
+                          {emoji}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            {currentStudent.name} 님
+                {currentStudent?.name} 님
+              </>
+            )}
           </h2>
           <button onClick={handleLogout} className="logout-button">로그아웃</button>
         </div>
@@ -382,7 +452,7 @@ export default function App() {
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
             <span className="month-subtitle">
-              🔥 챌린지 성공 <span className="highlight-count">{getSuccessDaysCount(currentStudent.id)}일</span>
+              🔥 챌린지 성공 <span className="highlight-count">{targetId ? getSuccessDaysCount(targetId) : 0}일</span>
             </span>
           </div>
           <button onClick={handleNextMonth} className="month-btn" aria-label="다음 달">▶</button>
@@ -394,13 +464,13 @@ export default function App() {
           onClick={() => setActiveTab('my')} 
           className={`tab-button ${activeTab === 'my' ? 'active' : ''}`}
         >
-          마이 챌린지
+          {isAdmin ? '학생 캘린더 관리' : '마이 챌린지'}
         </button>
         <button 
           onClick={() => setActiveTab('all')} 
           className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
         >
-          수다방 챌린지
+          {isAdmin ? '우리 반 전체 현황' : '수다방 챌린지'}
         </button>
       </div>
 
@@ -421,89 +491,106 @@ export default function App() {
             </button>
           </div>
 
+          {/* 💡 관리자 전용: 학생 선택 드롭다운 */}
+          {isAdmin && (
+            <div className="admin-select-wrapper">
+              <select 
+                className="admin-select"
+                value={adminSelectedStudentId || ''} 
+                onChange={(e) => setAdminSelectedStudentId(Number(e.target.value))}
+              >
+                <option value="" disabled>학생을 선택하세요</option>
+                {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
+
           {myCalendarView === 'month' ? (
             <>
-              <p className="calendar-guide">오늘 칸을 눌러서 달성을 기록하세요.</p>
-              
-              <div className="padlet-btn-wrapper">
-                <a 
-                  href={PADLET_URL} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="padlet-link-btn"
-                >
-                  📸 오늘의 챌린지하러 가기
-                </a>
-              </div>
+              {!isAdmin && (
+                <>
+                  <p className="calendar-guide">오늘 칸을 눌러서 달성을 기록하세요.</p>
+                  <div className="padlet-btn-wrapper">
+                    <a href={PADLET_URL} target="_blank" rel="noopener noreferrer" className="padlet-link-btn">
+                      📸 오늘의 챌린지하러 가기
+                    </a>
+                  </div>
+                </>
+              )}
 
-              <div className="calendar-grid">
-                {Array.from({ length: getEmptyBlocksCount(currentYear, currentMonth) }).map((_, idx) => (
-                  <div key={`empty-${idx}`} className="empty-block" />
-                ))}
-                
-                {weekdays.map(d => {
-                  const count = getSolvedCount(currentStudent.id, d);
-                  const isDone = count >= 3;
-                  const isToday = d === todayStr;
-                  const dayNum = Number(d.split('-')[2]); 
+              {targetId && (
+                <div className="calendar-grid">
+                  {Array.from({ length: getEmptyBlocksCount(currentYear, currentMonth) }).map((_, idx) => (
+                    <div key={`empty-${idx}`} className="empty-block" />
+                  ))}
+                  
+                  {weekdays.map(d => {
+                    const count = getSolvedCount(targetId, d);
+                    const isDone = count >= 3;
+                    const isToday = d === todayStr;
+                    const dayNum = Number(d.split('-')[2]); 
 
-                  return (
-                    <div 
-                      key={d} 
-                      title={isToday ? "오늘 날짜 🎯" : d}
-                      onClick={() => handleSquareClick(d)} 
-                      className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
-                    >
-                      {dayNum}
-                    </div>
-                  );
-                })}
-              </div>
+                    return (
+                      <div 
+                        key={d} 
+                        title={isToday ? "오늘 날짜 🎯" : d}
+                        onClick={() => handleSquareClick(d, targetId)} 
+                        className={`day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}
+                      >
+                        {dayNum}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </>
           ) : (
             <div className="yearly-view-container">
-              <div className="yearly-total-score">
-                ✨ {currentYear}년 나의 성장 기록: <span className="highlight-count">{getSuccessDaysCountByYear(currentStudent.id, currentYear)}일</span>
-              </div>
-              <div className="yearly-grid">
-                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
-                  const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
-                  const emptyCount = getEmptyBlocksCount(currentYear, month);
-                  const monthSuccessCount = getSuccessDaysCountByMonth(currentStudent.id, currentYear, month);
-                  
-                  return (
-                    <div key={month} className="yearly-month-card">
-                      <div className="yearly-month-header">
-                        <h4 className="yearly-month-title">{month}월</h4>
-                        <span className="yearly-month-score">✓ {monthSuccessCount}일</span>
-                      </div>
-                      <div className="small-calendar-grid">
-                        {Array.from({ length: emptyCount }).map((_, idx) => (
-                          <div key={`empty-yr-${month}-${idx}`} className="small-empty-block" />
-                        ))}
-                        {monthWeekdays.map(d => {
-                          const count = getSolvedCount(currentStudent.id, d);
-                          const isDone = count >= 3;
-                          const isToday = d === todayStr;
-                          const dayNum = Number(d.split('-')[2]); 
+              {targetId && (
+                <>
+                  <div className="yearly-total-score">
+                    ✨ {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(targetId, currentYear)}일</span>
+                  </div>
+                  <div className="yearly-grid">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
+                      const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
+                      const emptyCount = getEmptyBlocksCount(currentYear, month);
+                      const monthSuccessCount = getSuccessDaysCountByMonth(targetId, currentYear, month);
+                      
+                      return (
+                        <div key={month} className="yearly-month-card">
+                          <div className="yearly-month-header">
+                            <h4 className="yearly-month-title">{month}월</h4>
+                            <span className="yearly-month-score">✓ {monthSuccessCount}일</span>
+                          </div>
+                          <div className="small-calendar-grid">
+                            {Array.from({ length: emptyCount }).map((_, idx) => (
+                              <div key={`empty-yr-${month}-${idx}`} className="small-empty-block" />
+                            ))}
+                            {monthWeekdays.map(d => {
+                              const count = getSolvedCount(targetId, d);
+                              const isDone = count >= 3;
+                              const isToday = d === todayStr;
+                              const dayNum = Number(d.split('-')[2]); 
 
-                          return (
-                            <div 
-                              key={d} 
-                              title={d}
-                              onClick={() => handleSquareClick(d)}
-                              className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
-                              style={{ cursor: isToday ? 'pointer' : 'default' }}
-                            >
-                              {dayNum}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                              return (
+                                <div 
+                                  key={d} 
+                                  title={d}
+                                  onClick={() => handleSquareClick(d, targetId)}
+                                  className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}
+                                >
+                                  {dayNum}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -514,7 +601,7 @@ export default function App() {
           {[...students]
             .sort((a, b) => a.name.localeCompare(b.name, 'ko')) 
             .map(s => {
-              const isMe = s.id === currentStudent.id;
+              const isMe = s.id === currentStudent?.id;
               const emptyCount = getEmptyBlocksCount(currentYear, currentMonth);
               return (
                 <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
@@ -539,7 +626,8 @@ export default function App() {
                         <div 
                           key={d} 
                           title={`${s.name}: ${d}`}
-                          className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}`}
+                          onClick={() => { if (isAdmin) handleSquareClick(d, s.id); }}
+                          className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}
                         >
                           {dayNum}
                         </div>

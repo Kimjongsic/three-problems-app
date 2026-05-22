@@ -180,7 +180,6 @@ body {
   gap: 6px;
 }
 
-/* 💡 프로필 이모지 및 선택창 영역 */
 .profile-emoji-container {
   position: relative;
   display: inline-flex;
@@ -224,7 +223,6 @@ body {
   animation: popIn 0.2s ease-out;
 }
 
-/* 선택창이 뿅! 하고 나타나는 애니메이션 */
 @keyframes popIn {
   from { opacity: 0; transform: translateY(-10px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -377,6 +375,28 @@ body {
   background-color: #db2777;
 }
 
+/* 💡 관리자용 드롭다운 스타일 */
+.admin-select-wrapper {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-select {
+  width: 100%;
+  max-width: 220px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #d8b4fe;
+  background-color: #ffffff;
+  color: #5b21b6;
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.05);
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -417,6 +437,14 @@ body {
 }
 
 .day-block.today:active {
+  transform: scale(0.95);
+}
+
+/* 관리자가 블록 누를 때의 반응 */
+.day-block.admin-clickable {
+  cursor: pointer;
+}
+.day-block.admin-clickable:active {
   transform: scale(0.95);
 }
 
@@ -522,6 +550,14 @@ body {
 
 .small-day-block.today {
   border: 1.5px solid #f472b6;
+}
+
+/* 관리자가 수다방 챌린지 블록 누를 때의 반응 */
+.small-day-block.admin-clickable {
+  cursor: pointer;
+}
+.small-day-block.admin-clickable:active {
+  transform: scale(0.85);
 }
 
 .small-empty-block {
