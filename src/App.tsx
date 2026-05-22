@@ -6,7 +6,7 @@ import './App.css';
 const PADLET_URL = "https://padlet.com"; 
 
 // 💡 2. 관리자(선생님) 전용 비밀번호를 여기서 수정하세요!
-const ADMIN_PASSWORD = "0000"; 
+const ADMIN_PASSWORD = "admin"; 
 
 const EMOJI_LIST = ['🤍', '❤️', '🐰', '🍀', '🍒', '🐥', '🧸', '🎀', '🎧', '🌙'];
 
