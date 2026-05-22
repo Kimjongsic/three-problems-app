@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css'; 
 
-// 💡 1. 페들릿 주소를 넣어주세요.
 const PADLET_URL = "https://padlet.com"; 
 
-// 💡 2. 관리자(선생님) 전용 비밀번호를 여기서 수정하세요!
+// 💡 수정됨: 관리자 비밀번호를 "admin"으로 변경했습니다.
 const ADMIN_PASSWORD = "admin"; 
 
 const EMOJI_LIST = ['🤍', '❤️', '🐰', '🍀', '🍒', '🐥', '🧸', '🎀', '🎧', '🌙'];
@@ -27,13 +26,11 @@ export default function App() {
   const [logs, setLogs] = useState<ChallengeLog[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // 로그인/가입/관리자 모드 상태 관리
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'admin'>('login');
   const [loginPin, setLoginPin] = useState(''); 
   const [registerName, setRegisterName] = useState('');
   const [registerPin, setRegisterPin] = useState(''); 
   
-  // 학생 & 관리자 상태
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminSelectedStudentId, setAdminSelectedStudentId] = useState<number | null>(null);
@@ -102,7 +99,6 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear]); 
 
-  // 관리자가 로그인했을 때 학생 리스트가 로딩되면 첫 번째 학생을 기본 선택
   useEffect(() => {
     if (isAdmin && students.length > 0 && !adminSelectedStudentId) {
       setAdminSelectedStudentId(students[0].id);
@@ -171,11 +167,15 @@ export default function App() {
     setIsEmojiPickerOpen(false); 
   };
 
+  const switchAuthMode = (mode: 'login' | 'register' | 'admin') => {
+    setAuthMode(mode);
+    setLoginPin(''); // 모드 전환 시 입력하던 핀번호 초기화
+  };
+
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginPin.trim()) return;
 
-    // 💡 관리자 로그인 분기 처리
     if (authMode === 'admin') {
       if (loginPin === ADMIN_PASSWORD) {
         setIsAdmin(true);
@@ -187,7 +187,6 @@ export default function App() {
       return;
     }
 
-    // 학생 로그인 처리
     const student = students.find(s => s.password_pin === loginPin.trim());
     
     if (student) {
@@ -241,12 +240,10 @@ export default function App() {
     }
   };
 
-  // 💡 관리자는 대상을 넘겨받아 권한 제약 없이 캘린더 수정 가능
   const handleSquareClick = async (dateStr: string, targetStudentId?: number) => {
     const studentIdToUpdate = isAdmin ? targetStudentId : currentStudent?.id;
     if (!studentIdToUpdate) return;
 
-    // 관리자가 아니면 오늘 날짜만 클릭 가능하도록 제한
     if (!isAdmin && dateStr !== todayStr) {
       alert('오늘 날짜의 챌린지만 기록할 수 있어요! ✍️');
       return;
@@ -316,7 +313,6 @@ export default function App() {
     return <div className="loading-screen">데이터를 불러오는 중입니다...</div>;
   }
 
-  // 💡 로그인 / 관리자 로그인 / 회원가입 화면 분기
   if (!currentStudent && !isAdmin) {
     return (
       <div className="auth-container">
@@ -342,12 +338,12 @@ export default function App() {
               <button type="submit" className="auth-button">로그인하기</button>
               <p className="auth-switch-text">
                 처음 방문하셨나요?{' '}
-                <span onClick={() => setAuthMode('register')} className="auth-switch-link">
+                <span onClick={() => switchAuthMode('register')} className="auth-switch-link">
                   새로운 기록 시작하기
                 </span>
               </p>
               <p className="auth-switch-text" style={{ marginTop: '10px' }}>
-                <span onClick={() => setAuthMode('admin')} className="auth-switch-link" style={{ color: '#d8b4fe', fontWeight: '500' }}>
+                <span onClick={() => switchAuthMode('admin')} className="auth-switch-link" style={{ color: '#d8b4fe', fontWeight: '500' }}>
                   선생님이신가요? (관리자 모드)
                 </span>
               </p>
@@ -357,21 +353,20 @@ export default function App() {
           {authMode === 'admin' && (
             <form onSubmit={handleLoginSubmit}>
               <h3 className="auth-form-title">👩‍🏫 관리자(선생님) 로그인</h3>
+              {/* 💡 수정됨: maxLength 속성과 pin 클래스를 삭제하여 긴 영문 입력이 자연스럽게 가능하도록 함 */}
               <input 
                 type="password" 
-                inputMode="numeric"
-                maxLength={4}
                 placeholder="관리자 비밀번호" 
                 value={loginPin}
                 onChange={e => setLoginPin(e.target.value)}
-                className="auth-input pin"
+                className="auth-input"
               />
               <button type="submit" className="auth-button" style={{ backgroundColor: '#7c3aed' }}>
                 선생님 모드 입장
               </button>
               <p className="auth-switch-text">
                 학생이신가요?{' '}
-                <span onClick={() => setAuthMode('login')} className="auth-switch-link">
+                <span onClick={() => switchAuthMode('login')} className="auth-switch-link">
                   학생 로그인으로 돌아가기
                 </span>
               </p>
@@ -402,7 +397,7 @@ export default function App() {
               </button>
               <p className="auth-switch-text">
                 이미 등록하셨나요?{' '}
-                <span onClick={() => setAuthMode('login')} className="auth-switch-link">
+                <span onClick={() => switchAuthMode('login')} className="auth-switch-link">
                   로그인하기
                 </span>
               </p>
@@ -413,7 +408,6 @@ export default function App() {
     );
   }
 
-  // 💡 메인 챌린지 화면 (학생 & 관리자 공통)
   const targetId = isAdmin ? adminSelectedStudentId : currentStudent?.id;
 
   return (
@@ -491,7 +485,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* 💡 관리자 전용: 학생 선택 드롭다운 */}
           {isAdmin && (
             <div className="admin-select-wrapper">
               <select 
