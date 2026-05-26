@@ -27,6 +27,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'admin'>('login');
+  const [loginName, setLoginName] = useState(''); // 👈 새로 추가된 부분
   const [loginPin, setLoginPin] = useState(''); 
   const [registerName, setRegisterName] = useState('');
   const [registerPin, setRegisterPin] = useState(''); 
@@ -170,13 +171,14 @@ export default function App() {
   const switchAuthMode = (mode: 'login' | 'register' | 'admin') => {
     setAuthMode(mode);
     setLoginPin(''); // 모드 전환 시 입력하던 핀번호 초기화
+    setLoginName(''); // 👈 새로 추가된 부분
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginPin.trim()) return;
 
     if (authMode === 'admin') {
+      if (!loginPin.trim()) return;
       if (loginPin === ADMIN_PASSWORD) {
         setIsAdmin(true);
         setLoginPin('');
@@ -187,20 +189,31 @@ export default function App() {
       return;
     }
 
-    const student = students.find(s => s.password_pin === loginPin.trim());
-    
+    // 👈 학생 로그인 검증 로직 변경 시작
+    if (!loginName.trim() || !loginPin.trim()) {
+      alert('이름과 비밀번호를 모두 입력해 주세요!');
+      return;
+    }
+
+    // 이름과 비밀번호가 모두 일치하는 학생 찾기
+    const student = students.find(
+      s => s.name === loginName.trim() && s.password_pin === loginPin.trim()
+    );
+
     if (student) {
       setCurrentStudent(student);
       setActiveTab('my');
       setMyCalendarView('month');
+      setLoginName(''); // 이름 초기화
       setLoginPin('');
       localStorage.setItem('routine_user', JSON.stringify(student));
       
       const savedEmoji = localStorage.getItem(`emoji_${student.id}`);
       setUserEmoji(savedEmoji || '🤍');
     } else {
-      alert('비밀번호가 맞지 않아요. 다시 한 번 확인해 주세요! 🥲');
+      alert('이름이나 비밀번호가 맞지 않아요. 다시 한 번 확인해 주세요! 🥲');
     }
+    // 👈 변경 끝
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
@@ -326,6 +339,16 @@ export default function App() {
           {authMode === 'login' && (
             <form onSubmit={handleLoginSubmit}>
               <h3 className="auth-form-title">학생 로그인</h3>
+
+              {/* 👈 이름 입력란 추가 */}
+              <input 
+                type="text" 
+                placeholder="이름" 
+                value={loginName}
+                onChange={e => setLoginName(e.target.value)}
+                className="auth-input"
+              />
+
               <input 
                 type="password" 
                 inputMode="numeric"
