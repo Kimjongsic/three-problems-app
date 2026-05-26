@@ -509,16 +509,31 @@ export default function App() {
           </div>
 
           {isAdmin && (
-            <div className="admin-select-wrapper">
-              <select 
-                className="admin-select"
-                value={adminSelectedStudentId || ''} 
-                onChange={(e) => setAdminSelectedStudentId(Number(e.target.value))}
-              >
-                <option value="" disabled>학생을 선택하세요</option>
-                {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            </div>
+            <>
+              {/* 👈 선생님용 패들렛 버튼 추가 */}
+              <div className="padlet-btn-wrapper">
+                <a 
+                  href={PADLET_URL} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="padlet-link-btn" 
+                  style={{ backgroundColor: '#7c3aed', boxShadow: '0 6px 16px rgba(124, 58, 237, 0.25)' }}
+                >
+                  📸 우리 반 패들렛 확인하기
+                </a>
+              </div>
+              
+              <div className="admin-select-wrapper">
+                <select 
+                  className="admin-select"
+                  value={adminSelectedStudentId || ''} 
+                  onChange={(e) => setAdminSelectedStudentId(Number(e.target.value))}
+                >
+                  <option value="" disabled>학생을 선택하세요</option>
+                  {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+            </>
           )}
 
           {myCalendarView === 'month' ? (
