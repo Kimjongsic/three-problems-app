@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css'; 
 
-const PADLET_URL = "https://padlet.com"; 
+const PADLET_URL = "https://padlet.com/whdtlr8279_2/3-16pkfrpo9muwf4px";
 
 // 💡 수정됨: 관리자 비밀번호를 "admin"으로 변경했습니다.
 const ADMIN_PASSWORD = "admin"; 
