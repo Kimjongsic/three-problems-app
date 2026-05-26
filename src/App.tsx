@@ -440,7 +440,27 @@ export default function App() {
         <div className="header-top">
           <h2 className="student-name">
             {isAdmin ? (
-              <>👩‍🏫 선생님 모드</>
+              <>
+                <span>👩‍🏫 선생님 모드</span>
+                {/* 👈 선생님 모드 텍스트 바로 옆에 패들렛 바로가기 추가 */}
+                <a 
+                  href={PADLET_URL} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="logout-button"
+                  style={{ 
+                    textDecoration: 'none', 
+                    backgroundColor: '#7c3aed', 
+                    color: 'white', 
+                    borderColor: '#7c3aed',
+                    fontSize: '0.8rem',
+                    padding: '6px 12px',
+                    marginLeft: '4px'
+                  }}
+                >
+                  📸 패들렛 바로가기
+                </a>
+              </>
             ) : (
               <>
                 <div className="profile-emoji-container">
@@ -509,31 +529,16 @@ export default function App() {
           </div>
 
           {isAdmin && (
-            <>
-              {/* 👈 선생님용 패들렛 버튼 추가 */}
-              <div className="padlet-btn-wrapper">
-                <a 
-                  href={PADLET_URL} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="padlet-link-btn" 
-                  style={{ backgroundColor: '#7c3aed', boxShadow: '0 6px 16px rgba(124, 58, 237, 0.25)' }}
-                >
-                  📸 우리 반 패들렛 확인하기
-                </a>
-              </div>
-              
-              <div className="admin-select-wrapper">
-                <select 
-                  className="admin-select"
-                  value={adminSelectedStudentId || ''} 
-                  onChange={(e) => setAdminSelectedStudentId(Number(e.target.value))}
-                >
-                  <option value="" disabled>학생을 선택하세요</option>
-                  {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-            </>
+            <div className="admin-select-wrapper">
+              <select 
+                className="admin-select"
+                value={adminSelectedStudentId || ''} 
+                onChange={(e) => setAdminSelectedStudentId(Number(e.target.value))}
+              >
+                <option value="" disabled>학생을 선택하세요</option>
+                {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
           )}
 
           {myCalendarView === 'month' ? (
