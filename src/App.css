@@ -375,7 +375,6 @@ body {
   background-color: #db2777;
 }
 
-/* 관리자용 드롭다운 스타일 */
 .admin-select-wrapper {
   text-align: center;
   margin-bottom: 20px;
@@ -440,7 +439,6 @@ body {
   transform: scale(0.95);
 }
 
-/* 관리자가 블록 누를 때의 반응 */
 .day-block.admin-clickable {
   cursor: pointer;
 }
@@ -454,11 +452,12 @@ body {
 }
 
 /* -------------------------------------
-   수다방 챌린지 (All Board) 
+   수다방 챌린지 (All Board) - 💡 데스크탑 최적화 수정됨
 -------------------------------------- */
 .all-board-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  /* 💡 카드의 최소 너비를 135px에서 160px로 늘려 내부 블록이 튀어나오지 않게 함 */
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
 }
 
@@ -471,6 +470,9 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  /* 💡 그리드 아이템이 쪼그라들지 않도록 설정 */
+  min-width: 0; 
+  box-sizing: border-box;
 }
 
 .student-card.me {
@@ -522,7 +524,9 @@ body {
 .small-calendar-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
+  /* 💡 간격을 4px에서 3px로 미세 조정하여 안전성 확보 */
+  gap: 3px;
+  width: 100%;
 }
 
 .small-day-block {
@@ -552,7 +556,6 @@ body {
   border: 1.5px solid #f472b6;
 }
 
-/* 관리자가 수다방 챌린지 블록 누를 때의 반응 */
 .small-day-block.admin-clickable {
   cursor: pointer;
 }

@@ -586,32 +586,46 @@ export default function App() {
 
       {activeTab === 'all' && (
         <div className="all-board-list">
-          {[...students].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(s => {
-            const isMe = s.id === currentStudent?.id;
-            const emptyCount = getEmptyBlocksCount(currentYear, currentMonth);
-            return (
-              <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
-                <div className="student-card-header">
-                  <span className="student-card-name" title={s.name}>{s.name} {isMe && <span className="me-badge">Me</span>}</span>
-                  <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
+          {[...students]
+            .sort((a, b) => a.name.localeCompare(b.name, 'ko')) 
+            .map(s => {
+              const isMe = s.id === currentStudent?.id;
+              const emptyCount = getEmptyBlocksCount(currentYear, currentMonth);
+              return (
+                <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
+                  <div className="student-card-header">
+                    <span className="student-card-name" title={s.name}>
+                      {s.name} {isMe && <span className="me-badge">Me</span>}
+                    </span>
+                    <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
+                  </div>
+                  
+                  <div className="small-calendar-grid">
+                    {Array.from({ length: emptyCount }).map((_, idx) => (
+                      <div key={`empty-all-${s.id}-${idx}`} className="small-empty-block" />
+                    ))}
+                    {weekdays.map(d => {
+                      const count = getSolvedCount(s.id, d);
+                      const isDone = count >= 3;
+                      const isToday = d === todayStr;
+                      const dayNum = Number(d.split('-')[2]); 
+
+                      return (
+                        <div 
+                          key={d} 
+                          title={`${s.name}: ${d}`}
+                          // 💡 관리자라면 클릭 가능하도록
+                          onClick={() => { if (isAdmin) handleSquareClick(d, s.id); }}
+                          className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}
+                        >
+                          {dayNum}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="small-calendar-grid">
-                  {Array.from({ length: emptyCount }).map((_, idx) => <div key={`empty-all-${s.id}-${idx}`} className="small-empty-block" />)}
-                  {weekdays.map(d => {
-                    const count = getSolvedCount(s.id, d);
-                    const isDone = count >= 3;
-                    const isToday = d === todayStr;
-                    const dayNum = Number(d.split('-')[2]); 
-                    return (
-                      <div key={d} title={`${s.name}: ${d}`} onClick={() => { if (isAdmin) handleSquareClick(d, s.id); }} className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}>
-                        {dayNum}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       )}
     </div>
