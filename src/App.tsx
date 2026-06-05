@@ -49,7 +49,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
   const [myCalendarView, setMyCalendarView] = useState<'month' | 'year'>('month');
 
-  // 💡 수정됨: 초기 연도와 월을 현재 시간 기준으로 설정
+  // 초기 연도와 월을 현재 시간 기준으로 설정
   const [currentYear, setCurrentYear] = useState(kstNow.getUTCFullYear());
   const [currentMonth, setCurrentMonth] = useState(kstNow.getUTCMonth() + 1);
 
@@ -324,6 +324,20 @@ export default function App() {
     }).length;
   };
 
+  // 💡 [선생님 모드용] 반 전체 학생들의 월간 성공 횟수 합계를 계산하는 함수
+  const getTotalSuccessDaysCount = () => {
+    return students.reduce((acc, student) => {
+      return acc + getSuccessDaysCountByMonth(student.id, currentYear, currentMonth);
+    }, 0);
+  };
+
+  // 💡 [선생님 모드용] 반 전체 학생들의 연간 성공 횟수 합계를 계산하는 함수
+  const getTotalSuccessDaysCountByYear = (year: number) => {
+    return students.reduce((acc, student) => {
+      return acc + getSuccessDaysCountByYear(student.id, year);
+    }, 0);
+  };
+
   if (loading && students.length === 0) {
     return <div className="loading-screen">데이터를 불러오는 중입니다...</div>;
   }
@@ -471,8 +485,13 @@ export default function App() {
           <button onClick={handlePrevMonth} className="month-btn" aria-label="이전 달">◀</button>
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
+            {/* 💡 수정됨: 선생님 모드일 때는 반 전체 학생들의 성공 횟수 총합계를 출력하도록 분기 처리 */}
             <span className="month-subtitle">
-              🔥 챌린지 성공 <span className="highlight-count">{targetId ? getSuccessDaysCount(targetId) : 0}일</span>
+              {isAdmin ? (
+                <>👥 우리 반 전체 성공 <span className="highlight-count">{getTotalSuccessDaysCount()}회</span></>
+              ) : (
+                <>🔥 챌린지 성공 <span className="highlight-count">{targetId ? getSuccessDaysCount(targetId) : 0}일</span></>
+              )}
             </span>
           </div>
           <button onClick={handleNextMonth} className="month-btn" aria-label="다음 달">▶</button>
@@ -545,8 +564,13 @@ export default function App() {
             <div className="yearly-view-container">
               {targetId && (
                 <>
+                  {/* 💡 수정됨: 1년 모아보기 상단 배너도 선생님 모드일 때는 학급 전체 누적 성공 합계로 표시 */}
                   <div className="yearly-total-score">
-                    ✨ {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(targetId, currentYear)}일</span>
+                    {isAdmin ? (
+                      <>✨ {currentYear}년 우리 반 총 성공: <span className="highlight-count">{getTotalSuccessDaysCountByYear(currentYear)}회</span></>
+                    ) : (
+                      <>✨ {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(targetId, currentYear)}일</span></>
+                    )}
                   </div>
                   <div className="yearly-grid">
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
@@ -586,46 +610,32 @@ export default function App() {
 
       {activeTab === 'all' && (
         <div className="all-board-list">
-          {[...students]
-            .sort((a, b) => a.name.localeCompare(b.name, 'ko')) 
-            .map(s => {
-              const isMe = s.id === currentStudent?.id;
-              const emptyCount = getEmptyBlocksCount(currentYear, currentMonth);
-              return (
-                <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
-                  <div className="student-card-header">
-                    <span className="student-card-name" title={s.name}>
-                      {s.name} {isMe && <span className="me-badge">Me</span>}
-                    </span>
-                    <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
-                  </div>
-                  
-                  <div className="small-calendar-grid">
-                    {Array.from({ length: emptyCount }).map((_, idx) => (
-                      <div key={`empty-all-${s.id}-${idx}`} className="small-empty-block" />
-                    ))}
-                    {weekdays.map(d => {
-                      const count = getSolvedCount(s.id, d);
-                      const isDone = count >= 3;
-                      const isToday = d === todayStr;
-                      const dayNum = Number(d.split('-')[2]); 
-
-                      return (
-                        <div 
-                          key={d} 
-                          title={`${s.name}: ${d}`}
-                          // 💡 관리자라면 클릭 가능하도록
-                          onClick={() => { if (isAdmin) handleSquareClick(d, s.id); }}
-                          className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}
-                        >
-                          {dayNum}
-                        </div>
-                      );
-                    })}
-                  </div>
+          {[...students].sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(s => {
+            const isMe = s.id === currentStudent?.id;
+            const emptyCount = getEmptyBlocksCount(currentYear, currentMonth);
+            return (
+              <div key={s.id} className={`student-card ${isMe ? 'me' : ''}`}>
+                <div className="student-card-header">
+                  <span className="student-card-name" title={s.name}>{s.name} {isMe && <span className="me-badge">Me</span>}</span>
+                  <span className="student-card-score">✓ {getSuccessDaysCount(s.id)}일</span>
                 </div>
-              );
-            })}
+                <div className="small-calendar-grid">
+                  {Array.from({ length: emptyCount }).map((_, idx) => <div key={`empty-all-${s.id}-${idx}`} className="small-empty-block" />)}
+                  {weekdays.map(d => {
+                    const count = getSolvedCount(s.id, d);
+                    const isDone = count >= 3;
+                    const isToday = d === todayStr;
+                    const dayNum = Number(d.split('-')[2]); 
+                    return (
+                      <div key={d} title={`${s.name}: ${d}`} onClick={() => { if (isAdmin) handleSquareClick(d, s.id); }} className={`small-day-block ${isDone ? 'done' : ''} ${isToday ? 'today' : ''} ${isAdmin ? 'admin-clickable' : ''}`}>
+                        {dayNum}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
