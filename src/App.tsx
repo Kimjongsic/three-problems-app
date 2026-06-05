@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css'; 
 
-// 💡 1. 페들릿 주소를 넣어주세요.
+// 💡 1. 페들릿 주소
 const PADLET_URL = "https://padlet.com/whdtlr8279_2/3-16pkfrpo9muwf4px"; 
 
 // 💡 2. 관리자(선생님) 전용 비밀번호
@@ -10,7 +10,7 @@ const ADMIN_PASSWORD = "admin";
 
 const EMOJI_LIST = ['🤍', '❤️', '🐰', '🍀', '🍒', '🐥', '🧸', '🎀', '🎧', '🌙'];
 
-// 💡 현재 대한민국 시간(KST) 기준 날짜 객체 생성 (초기값 계산용)
+// 현재 대한민국 시간(KST) 기준 날짜 객체 생성 (초기값 계산용)
 const getKstNow = () => new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
 const kstNow = getKstNow();
 
@@ -53,10 +53,7 @@ export default function App() {
   const [currentYear, setCurrentYear] = useState(kstNow.getUTCFullYear());
   const [currentMonth, setCurrentMonth] = useState(kstNow.getUTCMonth() + 1);
 
-  const getTodayStr = () => {
-    const kst = getKstNow();
-    return kst.toISOString().split('T')[0];
-  };
+  const getTodayStr = () => getKstNow().toISOString().split('T')[0];
   const todayStr = getTodayStr();
 
   const getWeekdaysOfMonth = (year: number, month: number): string[] => {
@@ -324,17 +321,10 @@ export default function App() {
     }).length;
   };
 
-  // 💡 [선생님 모드용] 반 전체 학생들의 월간 성공 횟수 합계를 계산하는 함수
+  // [선생님 모드용] 반 전체 학생들의 월간 성공 횟수 합계
   const getTotalSuccessDaysCount = () => {
     return students.reduce((acc, student) => {
       return acc + getSuccessDaysCountByMonth(student.id, currentYear, currentMonth);
-    }, 0);
-  };
-
-  // 💡 [선생님 모드용] 반 전체 학생들의 연간 성공 횟수 합계를 계산하는 함수
-  const getTotalSuccessDaysCountByYear = (year: number) => {
-    return students.reduce((acc, student) => {
-      return acc + getSuccessDaysCountByYear(student.id, year);
     }, 0);
   };
 
@@ -485,7 +475,6 @@ export default function App() {
           <button onClick={handlePrevMonth} className="month-btn" aria-label="이전 달">◀</button>
           <div className="month-info">
             <span className="month-title">{currentYear}년 {currentMonth}월</span>
-            {/* 💡 수정됨: 선생님 모드일 때는 반 전체 학생들의 성공 횟수 총합계를 출력하도록 분기 처리 */}
             <span className="month-subtitle">
               {isAdmin ? (
                 <>👥 우리 반 전체 성공 <span className="highlight-count">{getTotalSuccessDaysCount()}회</span></>
@@ -564,10 +553,10 @@ export default function App() {
             <div className="yearly-view-container">
               {targetId && (
                 <>
-                  {/* 💡 수정됨: 1년 모아보기 상단 배너도 선생님 모드일 때는 학급 전체 누적 성공 합계로 표시 */}
+                  {/* 💡 수정됨: 선생님 모드에서도 해당 학생의 연간 총 성공 횟수가 나오도록 통일 */}
                   <div className="yearly-total-score">
                     {isAdmin ? (
-                      <>✨ {currentYear}년 우리 반 총 성공: <span className="highlight-count">{getTotalSuccessDaysCountByYear(currentYear)}회</span></>
+                      <>✨ {currentYear}년 해당 학생의 총 성공: <span className="highlight-count">{getSuccessDaysCountByYear(targetId, currentYear)}일</span></>
                     ) : (
                       <>✨ {currentYear}년 누적 달성: <span className="highlight-count">{getSuccessDaysCountByYear(targetId, currentYear)}일</span></>
                     )}
@@ -576,6 +565,7 @@ export default function App() {
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(month => {
                       const monthWeekdays = getWeekdaysOfMonth(currentYear, month);
                       const emptyCount = getEmptyBlocksCount(currentYear, month);
+                      // 💡 수정됨: 선생님 모드에서도 해당 학생의 월별 성공 횟수가 나오도록 원복
                       const monthSuccessCount = getSuccessDaysCountByMonth(targetId, currentYear, month);
                       return (
                         <div key={month} className="yearly-month-card">
